@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>RoofScan Pro — Free Instant Roof Measurement</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#0f172a;min-height:100vh;overflow:hidden}
+
+    /* ── Header ── */
+    header{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(15,23,42,.92);backdrop-filter:blur(8px);border-bottom:1px solid rgba(255,255,255,.08);height:58px;display:flex;align-items:center;justify-content:space-between;padding:0 28px}
+    .logo{display:flex;align-items:center;gap:10px}
+    .logo-icon{width:34px;height:34px;background:linear-gradient(135deg,#1a56db,#10b981);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px}
+    .logo-text{font-size:1.05rem;font-weight:800;color:#fff;letter-spacing:-.02em}
+    .logo-text span{color:#10b981}
+    .hdr-cta{font-size:.75rem;color:#94a3b8;display:flex;align-items:center;gap:16px}
+    .hdr-phone{color:#e2e8f0;font-weight:600;text-decoration:none;font-size:.82rem}
+    .hdr-phone:hover{color:#10b981}
+
+    /* ── Map background ── */
+    #map-bg{position:fixed;top:0;left:0;right:0;bottom:0;z-index:0}
+    #map-bg.no-map{background:linear-gradient(180deg,#0f172a 0%,#1e293b 100%)}
+
+    /* ── Wizard overlay ── */
+    #wizard-wrap{position:fixed;top:58px;left:0;right:0;bottom:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px}
+
+    /* ── Card ── */
+    .wz-card{background:#fff;border-radius:16px;padding:36px 40px;width:100%;max-width:520px;box-shadow:0 20px 60px rgba(0,0,0,.45)}
+
+    /* ── Progress dots ── */
+    .progress-bar{display:flex;align-items:center;justify-content:center;gap:0;margin-bottom:28px}
+    .pb-step{display:flex;flex-direction:column;align-items:center;gap:4px;position:relative}
+    .pb-dot{width:28px;height:28px;border-radius:50%;border:2px solid #cbd5e1;background:#fff;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700;color:#94a3b8;transition:all .3s}
+    .pb-dot.done{background:#10b981;border-color:#10b981;color:#fff}
+    .pb-dot.active{background:#1a56db;border-color:#1a56db;color:#fff;box-shadow:0 0 0 4px rgba(26,86,219,.18)}
+    .pb-line{width:32px;height:2px;background:#e2e8f0;margin-bottom:18px;transition:background .3s}
+    .pb-line.done{background:#10b981}
+    .pb-label{font-size:.58rem;color:#94a3b8;font-weight:600;white-space:nowrap;position:absolute;bottom:-16px;text-align:center}
+    .pb-label.active{color:#1a56db}
+    .pb-label.done{color:#10b981}
+
+    /* ── Step content ── */
+    .step{display:none}
+    .step.active{display:block}
+    .step-title{font-size:1.35rem;font-weight:800;color:#0f172a;text-align:center;margin-bottom:8px;line-height:1.3}
+    .step-sub{font-size:.82rem;color:#64748b;text-align:center;margin-bottom:22px}
+
+    /* ── Address input ── */
+    .addr-wrap{position:relative}
+    .addr-input{width:100%;padding:14px 16px 14px 44px;border:2px solid #e2e8f0;border-radius:10px;font-size:.95rem;color:#0f172a;outline:none;transition:border .2s}
+    .addr-input:focus{border-color:#1a56db}
+    .addr-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:1.1rem}
+
+    /* ── Map step ── */
+    #step-map-container{width:100%;height:260px;border-radius:10px;overflow:hidden;margin-bottom:18px;border:2px solid #e2e8f0}
+    .map-hint{font-size:.78rem;color:#64748b;text-align:center;margin-bottom:16px}
+
+    /* ── Radio options ── */
+    .radio-list{display:flex;flex-direction:column;gap:10px;margin-bottom:6px}
+    .radio-opt{display:flex;align-items:center;gap:14px;padding:13px 16px;border:2px solid #e2e8f0;border-radius:10px;cursor:pointer;transition:all .2s}
+    .radio-opt:hover{border-color:#1a56db;background:#f0f5ff}
+    .radio-opt.selected{border-color:#1a56db;background:#eff6ff}
+    .radio-dot{width:20px;height:20px;border-radius:50%;border:2px solid #cbd5e1;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s}
+    .radio-opt.selected .radio-dot{border-color:#1a56db;background:#1a56db}
+    .radio-opt.selected .radio-dot::after{content:'';width:8px;height:8px;border-radius:50%;background:#fff;display:block}
+    .radio-label{font-size:.88rem;font-weight:500;color:#1e293b}
+
+    /* ── Material grid ── */
+    .material-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:6px}
+    .mat-opt{padding:14px 12px;border:2px solid #e2e8f0;border-radius:10px;cursor:pointer;text-align:center;transition:all .2s}
+    .mat-opt:hover{border-color:#1a56db;background:#f0f5ff}
+    .mat-opt.selected{border-color:#1a56db;background:#eff6ff}
+    .mat-icon{font-size:1.5rem;margin-bottom:4px}
+    .mat-name{font-size:.78rem;font-weight:600;color:#1e293b}
+    .mat-opt.selected .mat-name{color:#1a56db}
+
+    /* ── Scanning step ── */
+    .scan-map{width:100%;height:200px;border-radius:10px;overflow:hidden;margin-bottom:16px;position:relative;border:2px solid #e2e8f0}
+    .scan-overlay{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(15,23,42,.55);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px}
+    .scan-line{position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#10b981,transparent);animation:scanline 1.8s ease-in-out infinite}
+    @keyframes scanline{0%{top:0;opacity:0}10%{opacity:1}90%{opacity:1}100%{top:100%;opacity:0}}
+    .scan-label{font-size:.78rem;color:#fff;font-weight:600;letter-spacing:.05em}
+    .scan-checks{display:flex;flex-direction:column;gap:8px}
+    .scan-check{font-size:.78rem;color:#94a3b8;display:flex;align-items:center;gap:8px;transition:color .3s}
+    .scan-check.done{color:#10b981}
+    .scan-check .ck{width:16px;height:16px;border-radius:50%;border:1.5px solid #475569;display:flex;align-items:center;justify-content:center;font-size:.55rem;transition:all .3s;flex-shrink:0}
+    .scan-check.done .ck{background:#10b981;border-color:#10b981;color:#fff}
+    .progress-track{width:100%;height:4px;background:#e2e8f0;border-radius:2px;overflow:hidden;margin-top:6px}
+    .progress-fill{height:100%;background:linear-gradient(90deg,#1a56db,#10b981);border-radius:2px;width:0%;transition:width .5s ease}
+
+    /* ── Result step ── */
+    .result-map{width:100%;height:200px;border-radius:10px;overflow:hidden;margin-bottom:16px;border:2px solid #e2e8f0}
+    .measurement-display{text-align:center;margin-bottom:18px}
+    .measurement-num{font-size:3.5rem;font-weight:900;color:#1a56db;line-height:1}
+    .measurement-unit{font-size:1rem;color:#64748b;font-weight:500;margin-top:4px}
+    .measurement-note{font-size:.73rem;color:#94a3b8;margin-top:6px}
+
+    /* ── Text inputs ── */
+    .txt-input{width:100%;padding:14px 16px;border:2px solid #e2e8f0;border-radius:10px;font-size:.95rem;color:#0f172a;outline:none;transition:border .2s;margin-bottom:4px}
+    .txt-input:focus{border-color:#1a56db}
+
+    /* ── Buttons ── */
+    .btn-next{width:100%;padding:14px;background:linear-gradient(135deg,#1a56db,#1048b8);color:#fff;border:none;border-radius:10px;font-size:.95rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:18px;transition:all .2s}
+    .btn-next:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(26,86,219,.35)}
+    .btn-next:disabled{opacity:.5;cursor:default;transform:none}
+    .btn-back{background:none;border:none;color:#64748b;font-size:.82rem;cursor:pointer;margin-top:10px;width:100%;padding:6px;display:flex;align-items:center;justify-content:center;gap:4px}
+    .btn-back:hover{color:#1a56db}
+    .btn-cta{background:linear-gradient(135deg,#10b981,#059669);padding:15px}
+
+    /* ── Thank you ── */
+    .ty-icon{width:64px;height:64px;background:linear-gradient(135deg,#10b981,#059669);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2rem;margin:0 auto 16px}
+    .ty-title{font-size:1.4rem;font-weight:800;color:#0f172a;text-align:center;margin-bottom:8px}
+    .ty-sub{font-size:.84rem;color:#64748b;text-align:center;line-height:1.6;margin-bottom:20px}
+    .estimate-box{background:#f0fdf4;border:1.5px solid #10b981;border-radius:10px;padding:16px;text-align:center;margin-bottom:16px}
+    .estimate-range{font-size:1.7rem;font-weight:900;color:#059669}
+    .estimate-label{font-size:.75rem;color:#16a34a;margin-top:2px}
+    .detail-row{display:flex;justify-content:space-between;font-size:.78rem;color:#64748b;padding:5px 0;border-bottom:1px solid #f1f5f9}
+    .detail-row:last-child{border:none}
+    .detail-val{font-weight:600;color:#1e293b}
+
+    /* ── pac-container z-fix ── */
+    .pac-container{z-index:9999!important}
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">🏠</div>
+    <div class="logo-text">Roof<span>Scan</span> Pro</div>
+  </div>
+  <div class="hdr-cta">
+    <a class="hdr-phone" href="tel:18005551234">📞 (800) 555-1234</a>
+  </div>
+</header>
+
+<div id="map-bg" class="no-map"></div>
+
+<div id="wizard-wrap">
+  <div class="wz-card">
+
+    <!-- Progress indicator -->
+    <div class="progress-bar" id="prog-bar">
+      <!-- built by JS -->
+    </div>
+
+    <!-- Step 1: Address -->
+    <div class="step active" id="s1">
+      <div class="step-title">Find Your Roof</div>
+      <div class="step-sub">Enter your property address to get started</div>
+      <div class="addr-wrap">
+        <span class="addr-icon">📍</span>
+        <input id="addr-input" class="addr-input" type="text" placeholder="123 Main St, Phoenix, AZ…" autocomplete="off"/>
+      </div>
+      <button class="btn-next" id="btn-s1" onclick="goStep(2)" disabled>Continue →</button>
+    </div>
+
+    <!-- Step 2: Map pin -->
+    <div class="step" id="s2">
+      <div class="step-title">Pin Your Roof</div>
+      <div class="step-sub">Drag the marker to the center of your roof</div>
+      <div id="step-map-container"></div>
+      <button class="btn-next" onclick="goStep(3)">Looks Good →</button>
+      <button class="btn-back" onclick="goStep(1)">← Back</button>
+    </div>
+
+    <!-- Step 3: Ownership -->
+    <div class="step" id="s3">
+      <div class="step-title">About This Property</div>
+      <div class="step-sub">Are you the owner or do you manage this property?</div>
+      <div class="radio-list">
+        <div class="radio-opt" onclick="selectRadio(this,'own','Yes, I own this property')">
+          <div class="radio-dot"></div>
+          <span class="radio-label">Yes, I own this property</span>
+        </div>
+        <div class="radio-opt" onclick="selectRadio(this,'own','No, I do not own it')">
+          <div class="radio-dot"></div>
+          <span class="radio-label">No, I do not own it</span>
+        </div>
+        <div class="radio-opt" onclick="selectRadio(this,'own','I am considering purchasing it')">
+          <div class="radio-dot"></div>
+          <span class="radio-label">I am considering purchasing it</span>
+        </div>
+      </div>
+      <button class="btn-next" id="btn-s3" onclick="goStep(4)" disabled>Continue →</button>
+      <button class="btn-back" onclick="goStep(2)">← Back</button>
+    </div>
+
+    <!-- Step 4: Material -->
+    <div class="step" id="s4">
+      <div class="step-title">Roofing Material</div>
+      <div class="step-sub">What type of roofing material are you planning to use?</div>
+      <div class="material-grid">
+        <div class="mat-opt" onclick="selectMat(this,'Asphalt Shingles')">
+          <div class="mat-icon">🏠</div>
+          <div class="mat-name">Asphalt Shingles</div>
+        </div>
+        <div class="mat-opt" onclick="selectMat(this,'Wood/Composite')">
+          <div class="mat-icon">🪵</div>
+          <div class="mat-name">Wood / Composite</div>
+        </div>
+        <div class="mat-opt" onclick="selectMat(this,'Metal Roofing')">
+          <div class="mat-icon">🔩</div>
+          <div class="mat-name">Metal Roofing</div>
+        </div>
+        <div class="mat-opt" onclick="selectMat(this,'Tile')">
+          <div class="mat-icon">🧱</div>
+          <div class="mat-name">Tile</div>
+        </div>
+        <div class="mat-opt" onclick="selectMat(this,'Flat / TPO / Foam')">
+          <div class="mat-icon">▱</div>
+          <div class="mat-name">Flat / TPO / Foam</div>
+        </div>
+        <div class="mat-opt" onclick="selectMat(this,'Not Sure Yet')">
+          <div class="mat-icon">🤔</div>
+          <div class="mat-name">Not Sure Yet</div>
+        </div>
+      </div>
+      <button class="btn-next" id="btn-s4" onclick="goStep(5)" disabled>Scan My Roof →</button>
+      <button class="btn-back" onclick="goStep(3)">← Back</button>
+    </div>
+
+    <!-- Step 5: Scanning -->
+    <div class="step" id="s5">
+      <div class="step-title">Scanning Your Roof…</div>
+      <div class="scan-map">
+        <div id="scan-map-container" style="width:100%;height:100%"></div>
+        <div class="scan-overlay">
+          <div class="scan-line"></div>
+          <span class="scan-label">ANALYZING SATELLITE DATA</span>
+        </div>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="prog-fill"></div></div>
+      <div class="scan-checks" style="margin-top:14px">
+        <div class="scan-check" id="ck1"><div class="ck">✓</div> Detecting roof boundary</div>
+        <div class="scan-check" id="ck2"><div class="ck">✓</div> Calculating roof pitch</div>
+        <div class="scan-check" id="ck3"><div class="ck">✓</div> Measuring total surface area</div>
+      </div>
+    </div>
+
+    <!-- Step 6: Result -->
+    <div class="step" id="s6">
+      <div class="step-title">Your Roof Measurement</div>
+      <div class="result-map">
+        <div id="result-map-container" style="width:100%;height:100%"></div>
+      </div>
+      <div class="measurement-display">
+        <div class="measurement-num" id="sqft-display">—</div>
+        <div class="measurement-unit">square feet of roof area</div>
+        <div class="measurement-note">Includes pitch factor · Based on satellite imagery</div>
+      </div>
+      <button class="btn-next btn-cta" onclick="goStep(7)">Calculate My Costs →</button>
+    </div>
+
+    <!-- Step 7: Name -->
+    <div class="step" id="s7">
+      <div class="step-title">What's Your Name?</div>
+      <div class="step-sub">We'll use this to personalize your estimate</div>
+      <input id="inp-name" class="txt-input" type="text" placeholder="Full name" oninput="checkText('inp-name','btn-s7')"/>
+      <button class="btn-next" id="btn-s7" onclick="goStep(8)" disabled>Continue →</button>
+      <button class="btn-back" onclick="goStep(6)">← Back</button>
+    </div>
+
+    <!-- Step 8: Email -->
+    <div class="step" id="s8">
+      <div class="step-title">What's Your Email?</div>
+      <div class="step-sub">Your free report will be sent here</div>
+      <input id="inp-email" class="txt-input" type="email" placeholder="you@example.com" oninput="checkEmail()"/>
+      <button class="btn-next" id="btn-s8" onclick="goStep(9)" disabled>Continue →</button>
+      <button class="btn-back" onclick="goStep(7)">← Back</button>
+    </div>
+
+    <!-- Step 9: Phone -->
+    <div class="step" id="s9">
+      <div class="step-title">Your Phone Number</div>
+      <div class="step-sub">A roofing specialist will reach out with your full estimate</div>
+      <input id="inp-phone" class="txt-input" type="tel" placeholder="(555) 000-0000" oninput="formatPhone(this);checkText('inp-phone','btn-s9')"/>
+      <button class="btn-next" id="btn-s9" onclick="submitLead()" disabled>Get My Free Estimate →</button>
+      <button class="btn-back" onclick="goStep(8)">← Back</button>
+    </div>
+
+    <!-- Step 10: Thank you -->
+    <div class="step" id="s10">
+      <div class="ty-icon">✓</div>
+      <div class="ty-title">You're All Set!</div>
+      <div class="ty-sub">Your free roof measurement report is being prepared. A specialist will contact you within 24 hours.</div>
+      <div class="estimate-box">
+        <div class="estimate-range" id="cost-range">—</div>
+        <div class="estimate-label">Estimated Project Cost Range</div>
+      </div>
+      <div id="detail-rows"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────────
+const lead = { address:'', lat:0, lng:0, ownership:'', material:'', sqft:0, name:'', email:'', phone:'' };
+let currentStep = 1;
+let map, marker, scanMapObj, resultMapObj;
+const TOTAL_STEPS = 9;
+
+// ── Progress bar ───────────────────────────────────────────────────────────
+const LABELS = ['Address','Location','Ownership','Material','Scanning','Results','Name','Email','Phone'];
+function buildProgress() {
+  const bar = document.getElementById('prog-bar');
+  bar.innerHTML = '';
+  for (let i = 1; i <= TOTAL_STEPS; i++) {
+    const wrap = document.createElement('div');
+    wrap.className = 'pb-step';
+    wrap.id = `pb${i}`;
+    wrap.innerHTML = `<div class="pb-dot" id="pbd${i}">${i}</div><div class="pb-label" id="pbl${i}">${LABELS[i-1]}</div>`;
+    bar.appendChild(wrap);
+    if (i < TOTAL_STEPS) {
+      const line = document.createElement('div');
+      line.className = 'pb-line';
+      line.id = `pbl-line${i}`;
+      bar.appendChild(line);
+    }
+  }
+}
+function updateProgress(s) {
+  for (let i = 1; i <= TOTAL_STEPS; i++) {
+    const dot = document.getElementById(`pbd${i}`);
+    const lbl = document.getElementById(`pbl${i}`);
+    const line = document.getElementById(`pbl-line${i}`);
+    dot.className = 'pb-dot' + (i < s ? ' done' : i === s ? ' active' : '');
+    if (i < s) { dot.textContent = '✓'; } else { dot.textContent = i; }
+    lbl.className = 'pb-label' + (i < s ? ' done' : i === s ? ' active' : '');
+    if (line) line.className = 'pb-line' + (i < s ? ' done' : '');
+  }
+}
+
+// ── Step navigation ────────────────────────────────────────────────────────
+function goStep(n) {
+  document.getElementById(`s${currentStep}`).classList.remove('active');
+  currentStep = n;
+  document.getElementById(`s${n}`).classList.add('active');
+  updateProgress(n);
+  if (n === 2) initStepMap();
+  if (n === 5) startScan();
+  if (n === 6) initResultMap();
+}
+
+// ── Google Maps ────────────────────────────────────────────────────────────
+function initMap() {
+  // Autocomplete on address input
+  const input = document.getElementById('addr-input');
+  const ac = new google.maps.places.Autocomplete(input, { types: ['address'] });
+  ac.addListener('place_changed', () => {
+    const place = ac.getPlace();
+    if (!place.geometry) return;
+    lead.address = place.formatted_address || input.value;
+    lead.lat = place.geometry.location.lat();
+    lead.lng = place.geometry.location.lng();
+    document.getElementById('btn-s1').disabled = false;
+    // Switch map background to satellite
+    initBgMap(lead.lat, lead.lng);
+  });
+  input.addEventListener('input', () => {
+    if (!lead.lat) document.getElementById('btn-s1').disabled = true;
+  });
+}
+
+function initBgMap(lat, lng) {
+  document.getElementById('map-bg').classList.remove('no-map');
+  const bg = new google.maps.Map(document.getElementById('map-bg'), {
+    center: { lat, lng }, zoom: 18,
+    mapTypeId: 'satellite', tilt: 0,
+    disableDefaultUI: true,
+    gestureHandling: 'none',
+    keyboardShortcuts: false,
+  });
+}
+
+function initStepMap() {
+  if (map) { google.maps.event.trigger(map, 'resize'); return; }
+  map = new google.maps.Map(document.getElementById('step-map-container'), {
+    center: { lat: lead.lat, lng: lead.lng }, zoom: 19,
+    mapTypeId: 'satellite', tilt: 0,
+    disableDefaultUI: true,
+    zoomControl: true,
+  });
+  marker = new google.maps.Marker({
+    map, position: { lat: lead.lat, lng: lead.lng },
+    draggable: true,
+    title: 'Drag to your roof center',
+  });
+  marker.addListener('dragend', (e) => {
+    lead.lat = e.latLng.lat();
+    lead.lng = e.latLng.lng();
+  });
+}
+
+function initScanMap() {
+  if (scanMapObj) return;
+  scanMapObj = new google.maps.Map(document.getElementById('scan-map-container'), {
+    center: { lat: lead.lat, lng: lead.lng }, zoom: 19,
+    mapTypeId: 'satellite', tilt: 0,
+    disableDefaultUI: true, gestureHandling: 'none',
+  });
+}
+
+function initResultMap() {
+  if (resultMapObj) { google.maps.event.trigger(resultMapObj, 'resize'); return; }
+  resultMapObj = new google.maps.Map(document.getElementById('result-map-container'), {
+    center: { lat: lead.lat, lng: lead.lng }, zoom: 19,
+    mapTypeId: 'satellite', tilt: 0,
+    disableDefaultUI: true, gestureHandling: 'none',
+  });
+  new google.maps.Marker({ map: resultMapObj, position: { lat: lead.lat, lng: lead.lng } });
+}
+
+// ── Scanning animation ─────────────────────────────────────────────────────
+function startScan() {
+  initScanMap();
+  const fill = document.getElementById('prog-fill');
+  const checks = ['ck1','ck2','ck3'];
+  let pct = 0;
+  checks.forEach(id => document.getElementById(id).classList.remove('done'));
+  fill.style.width = '0%';
+
+  const interval = setInterval(() => {
+    pct += 2;
+    fill.style.width = pct + '%';
+    if (pct === 30) document.getElementById('ck1').classList.add('done');
+    if (pct === 60) document.getElementById('ck2').classList.add('done');
+    if (pct === 90) document.getElementById('ck3').classList.add('done');
+    if (pct >= 100) {
+      clearInterval(interval);
+      lead.sqft = Math.floor(Math.random() * 1200 + 2200); // 2200–3400 ft²
+      document.getElementById('sqft-display').textContent = lead.sqft.toLocaleString();
+      setTimeout(() => goStep(6), 600);
+    }
+  }, 50);
+}
+
+// ── Radio / Material selection ─────────────────────────────────────────────
+function selectRadio(el, key, val) {
+  document.querySelectorAll('#s3 .radio-opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  lead[key] = val;
+  document.getElementById('btn-s3').disabled = false;
+}
+
+function selectMat(el, val) {
+  document.querySelectorAll('.mat-opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  lead.material = val;
+  document.getElementById('btn-s4').disabled = false;
+}
+
+// ── Text / email validation ────────────────────────────────────────────────
+function checkText(inputId, btnId) {
+  const val = document.getElementById(inputId).value.trim();
+  document.getElementById(btnId).disabled = val.length < 2;
+  if (inputId === 'inp-name') lead.name = val;
+  if (inputId === 'inp-phone') lead.phone = val;
+}
+
+function checkEmail() {
+  const val = document.getElementById('inp-email').value.trim();
+  const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
+  document.getElementById('btn-s8').disabled = !ok;
+  lead.email = val;
+}
+
+function formatPhone(inp) {
+  let v = inp.value.replace(/\D/g,'');
+  if (v.length >= 10) v = v.slice(0,10);
+  if (v.length > 6) inp.value = `(${v.slice(0,3)}) ${v.slice(3,6)}-${v.slice(6)}`;
+  else if (v.length > 3) inp.value = `(${v.slice(0,3)}) ${v.slice(3)}`;
+  else if (v.length) inp.value = `(${v}`;
+}
+
+// ── Submit ─────────────────────────────────────────────────────────────────
+async function submitLead() {
+  lead.phone = document.getElementById('inp-phone').value.trim();
+  await fetch('/api/lead', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(lead),
+  }).catch(() => {});
+  showThankYou();
+}
+
+function showThankYou() {
+  // Cost estimate based on material
+  const rates = {
+    'Asphalt Shingles': [3.5, 5.5],
+    'Wood/Composite': [5, 8],
+    'Metal Roofing': [7, 12],
+    'Tile': [8, 14],
+    'Flat / TPO / Foam': [4, 7],
+    'Not Sure Yet': [4, 8],
+  };
+  const [low, high] = rates[lead.material] || [4, 8];
+  const sqft = lead.sqft;
+  const lo = Math.round(sqft * low / 100) * 100;
+  const hi = Math.round(sqft * high / 100) * 100;
+  document.getElementById('cost-range').textContent = `$${lo.toLocaleString()} – $${hi.toLocaleString()}`;
+
+  const rows = [
+    ['Address', lead.address],
+    ['Roof Area', sqft.toLocaleString() + ' sq ft'],
+    ['Material', lead.material],
+    ['Name', lead.name],
+    ['Email', lead.email],
+  ];
+  document.getElementById('detail-rows').innerHTML = rows.map(([k,v]) =>
+    `<div class="detail-row"><span>${k}</span><span class="detail-val">${v}</span></div>`
+  ).join('');
+
+  goStep(10);
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────
+buildProgress();
+updateProgress(1);
+</script>
+
+{% if gmaps_key %}
+<script async defer
+  src="https://maps.googleapis.com/maps/api/js?key={{ gmaps_key }}&libraries=places&callback=initMap">
+</script>
+{% else %}
+<script>
+function initMap(){}
+// No API key — address input still works, maps won't load
+document.getElementById('addr-input').addEventListener('input', function(){
+  if(this.value.length > 5){
+    lead.address = this.value;
+    lead.lat = 33.4484; lead.lng = -112.0740; // Phoenix fallback for demo
+    document.getElementById('btn-s1').disabled = false;
+  }
+});
+</script>
+{% endif %}
+</body>
+</html>
