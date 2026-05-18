@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>RoofScan Pro — Client Presentation</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Inter',sans-serif;background:#0f172a;color:#fff;height:100vh;overflow:hidden;user-select:none}
+
+    /* ── Slides ── */
+    .slide{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 80px;opacity:0;pointer-events:none;transition:opacity .6s ease,transform .6s ease;transform:translateX(60px)}
+    .slide.active{opacity:1;pointer-events:all;transform:translateX(0)}
+    .slide.exit{opacity:0;transform:translateX(-60px)}
+
+    /* ── Nav ── */
+    .nav{position:fixed;bottom:36px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:20px;z-index:100;background:rgba(15,23,42,.7);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.1);border-radius:50px;padding:12px 24px}
+    .nav-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.25);cursor:pointer;transition:all .3s}
+    .nav-dot.active{background:#10b981;width:24px;border-radius:4px}
+    .nav-btn{background:none;border:1px solid rgba(255,255,255,.2);color:#fff;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;transition:all .2s}
+    .nav-btn:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.4)}
+    .slide-count{font-size:.75rem;color:#64748b;min-width:48px;text-align:center}
+
+    /* ── Slide counter top ── */
+    .top-bar{position:fixed;top:0;left:0;right:0;height:3px;background:rgba(255,255,255,.08);z-index:100}
+    .top-progress{height:100%;background:linear-gradient(90deg,#1a56db,#10b981);transition:width .5s ease}
+
+    /* ── Logo badge ── */
+    .logo-badge{position:fixed;top:24px;left:32px;display:flex;align-items:center;gap:10px;z-index:100}
+    .logo-icon{width:36px;height:36px;background:linear-gradient(135deg,#1a56db,#10b981);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:1.1rem}
+    .logo-text{font-size:.9rem;font-weight:800;color:#fff;letter-spacing:-.02em}
+    .logo-text span{color:#10b981}
+
+    /* ── Typography ── */
+    .eyebrow{font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#10b981;margin-bottom:14px}
+    .h1{font-size:3.8rem;font-weight:900;line-height:1.05;letter-spacing:-.04em;color:#fff}
+    .h2{font-size:2.6rem;font-weight:800;line-height:1.1;letter-spacing:-.03em}
+    .h3{font-size:1.5rem;font-weight:700;line-height:1.2}
+    .body{font-size:1.05rem;color:#94a3b8;line-height:1.7;max-width:640px}
+    .accent{color:#10b981}
+    .blue{color:#60a5fa}
+
+    /* ── Cards ── */
+    .card-grid{display:grid;gap:20px;width:100%;max-width:1000px}
+    .card-grid.cols-3{grid-template-columns:repeat(3,1fr)}
+    .card-grid.cols-2{grid-template-columns:repeat(2,1fr)}
+    .card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:28px;transition:border .3s}
+    .card:hover{border-color:rgba(16,185,129,.3)}
+    .card-icon{font-size:2rem;margin-bottom:14px}
+    .card-title{font-size:1rem;font-weight:700;color:#e2e8f0;margin-bottom:8px}
+    .card-body{font-size:.85rem;color:#64748b;line-height:1.6}
+
+    /* ── Stat blocks ── */
+    .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;width:100%;max-width:860px}
+    .stat{text-align:center;padding:32px 24px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:16px}
+    .stat-num{font-size:3rem;font-weight:900;background:linear-gradient(135deg,#60a5fa,#10b981);-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1}
+    .stat-label{font-size:.8rem;color:#64748b;margin-top:8px;font-weight:500}
+
+    /* ── Step list ── */
+    .step-list{display:flex;flex-direction:column;gap:16px;width:100%;max-width:700px}
+    .step-item{display:flex;align-items:flex-start;gap:20px;padding:20px 24px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:14px}
+    .step-num{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#1a56db,#10b981);display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:800;flex-shrink:0}
+    .step-text h4{font-size:.95rem;font-weight:700;color:#e2e8f0;margin-bottom:4px}
+    .step-text p{font-size:.82rem;color:#64748b;line-height:1.5}
+
+    /* ── Pill tags ── */
+    .tag{display:inline-block;padding:5px 14px;border-radius:50px;font-size:.72rem;font-weight:600;letter-spacing:.04em;background:rgba(16,185,129,.12);color:#10b981;border:1px solid rgba(16,185,129,.25);margin:4px}
+
+    /* ── Quote ── */
+    .quote-block{max-width:700px;text-align:center}
+    .quote-text{font-size:2rem;font-weight:700;line-height:1.4;color:#e2e8f0;margin-bottom:24px}
+    .quote-text em{color:#10b981;font-style:normal}
+
+    /* ── CTA ── */
+    .cta-box{background:linear-gradient(135deg,rgba(26,86,219,.2),rgba(16,185,129,.15));border:1px solid rgba(16,185,129,.3);border-radius:20px;padding:48px 60px;text-align:center;max-width:700px}
+
+    /* ── Slide-specific backgrounds ── */
+    .slide-1{background:radial-gradient(ellipse 80% 60% at 50% -10%,rgba(26,86,219,.35) 0%,transparent 70%),#0f172a}
+    .slide-2{background:radial-gradient(ellipse 60% 50% at 80% 50%,rgba(220,38,38,.15) 0%,transparent 60%),#0f172a}
+    .slide-3{background:radial-gradient(ellipse 60% 50% at 20% 50%,rgba(16,185,129,.12) 0%,transparent 60%),#0f172a}
+    .slide-4,.slide-5,.slide-6,.slide-7,.slide-8,.slide-9,.slide-10{background:#0f172a}
+
+    /* ── Two col layout ── */
+    .two-col{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;width:100%;max-width:1000px}
+    .two-col .left{}
+    .two-col .right{}
+
+    /* ── Divider ── */
+    .divider{width:60px;height:3px;background:linear-gradient(90deg,#1a56db,#10b981);border-radius:2px;margin:20px 0}
+
+    /* ── Mockup frame ── */
+    .mockup{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:20px;font-size:.78rem;color:#64748b;line-height:1.8}
+    .mockup-bar{display:flex;gap:6px;margin-bottom:14px}
+    .mockup-dot{width:10px;height:10px;border-radius:50%}
+    .mockup-url{flex:1;background:rgba(255,255,255,.06);border-radius:6px;padding:4px 12px;font-size:.7rem;color:#475569}
+
+    /* ── Check list ── */
+    .check-list{display:flex;flex-direction:column;gap:12px}
+    .check-item{display:flex;align-items:center;gap:12px;font-size:.95rem;color:#cbd5e1}
+    .check-item::before{content:'✓';width:22px;height:22px;border-radius:50%;background:rgba(16,185,129,.2);color:#10b981;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:800;flex-shrink:0}
+
+    /* ── ROI bar ── */
+    .roi-row{margin-bottom:16px}
+    .roi-label{display:flex;justify-content:space-between;font-size:.82rem;margin-bottom:6px}
+    .roi-label span:first-child{color:#94a3b8}
+    .roi-label span:last-child{color:#10b981;font-weight:700}
+    .roi-track{height:8px;background:rgba(255,255,255,.07);border-radius:4px;overflow:hidden}
+    .roi-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,#1a56db,#10b981);transition:width 1s ease}
+
+    /* ── Keyboard hint ── */
+    .key-hint{position:fixed;top:24px;right:32px;font-size:.7rem;color:#334155;z-index:100}
+    .key-hint kbd{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:4px;padding:2px 8px;font-family:inherit}
+  </style>
+</head>
+<body>
+
+<div class="top-bar"><div class="top-progress" id="progress-bar"></div></div>
+
+<div class="logo-badge">
+  <div class="logo-icon">🏠</div>
+  <div class="logo-text">Roof<span>Scan</span> Pro</div>
+</div>
+
+<div class="key-hint"><kbd>←</kbd> <kbd>→</kbd> to navigate</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     SLIDE 1 — Cover
+════════════════════════════════════════════════════════════ -->
+<div class="slide slide-1 active" id="slide-1">
+  <div style="text-align:center;max-width:800px">
+    <div class="eyebrow">Next-Generation Roofing Technology</div>
+    <div class="h1" style="margin-bottom:24px">Turn Every Website<br>Visitor Into a <span class="accent">Qualified Lead</span></div>
+    <div class="body" style="margin:0 auto 36px;text-align:center">An intelligent, satellite-powered roof measurement tool that captures homeowner contact information automatically — no phone calls, no guesswork.</div>
+    <div>
+      <span class="tag">Satellite Mapping</span>
+      <span class="tag">Instant Estimates</span>
+      <span class="tag">Automated Lead Capture</span>
+      <span class="tag">Mobile Friendly</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     SLIDE 2 — The Problem
+════════════════════════════════════════════════════════════ -->
+<div class="slide slide-2" id="slide-2">
+  <div style="text-align:center;max-width:900px">
+    <div class="eyebrow">The Challenge</div>
+    <div class="h2" style="margin-bottom:16px">Roofing Leads Are <span style="color:#f87171">Expensive & Slow</span></div>
+    <div class="divider" style="margin:0 auto 40px"></div>
+    <div class="card-grid cols-3">
+      <div class="card">
+        <div class="card-icon">📞</div>
+        <div class="card-title">Phone Tag</div>
+        <div class="card-body">Homeowners call, wait on hold, and drop off before ever speaking to someone. Leads go cold fast.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">💸</div>
+        <div class="card-title">High Acquisition Cost</div>
+        <div class="card-body">The average roofing company spends $150–$400 per qualified lead through traditional advertising.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">📋</div>
+        <div class="card-title">Manual Estimates</div>
+        <div class="card-body">Sending a rep to measure every roof wastes hours. Most homeowners want a number before they commit.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     SLIDE 3 — The Solution
+════════════════════════════════════════════════════════════ -->
+<div class="slide slide-3" id="slide-3">
+  <div class="two-col">
+    <div class="left">
+      <div class="eyebrow">The Solution</div>
+      <div class="h2" style="margin-bottom:16px">A Tool That Works <span class="accent">While You Sleep</span></div>
+      <div class="divider"></div>
+      <div class="body" style="margin-bottom:28px">RoofScan Pro is an embedded web tool that lets homeowners measure their own roof using satellite imagery — then captures their contact info and project details automatically.</div>
+      <div class="check-list">
+        <div class="check-item">No sales rep required for the first touchpoint</div>
+        <div class="check-item">Homeowner gets instant value before committing</div>
+        <div class="check-item">You receive a complete, qualified lead profile</div>
+        <div class="check-item">Works 24/7 on any device</div>
+      </div>
+    </div>
+    <div class="right">
+      <div class="mockup">
+        <div class="mockup-bar">
+          <div class="mockup-dot" style="background:#f87171"></div>
+          <div class="mockup-dot" style="background:#fbbf24"></div>
+          <div class="mockup-dot" style="background:#34d399"></div>
+          <div class="mockup-url">roofscan.up.railway.app</div>
+        </div>
+        <div style="background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:10px;padding:16px;margin-bottom:10px">
+          <div style="font-size:.7rem;color:#10b981;font-weight:700;margin-bottom:6px">✓ ROOF SCAN COMPLETE</div>
+          <div style="font-size:1.6rem;font-weight:900;color:#fff">2,847 <span style="font-size:.9rem;color:#64748b;font-weight:400">sq ft</span></div>
+          <div style="font-size:.7rem;color:#475569;margin-top:4px">123 Oak Lane · Asphalt Shingles</div>
+        </div>
+        <div style="background:rgba(26,86,219,.1);border:1px solid rgba(26,86,219,.2);border-radius:10px;padding:16px">
+          <div style="font-size:.7rem;color:#60a5fa;font-weight:700;margin-bottom:6px">💰 ESTIMATED RANGE</div>
+          <div style="font-size:1.4rem;font-weight:900;color:#fff">$9,900 – $15,600</div>
+          <div style="font-size:.7rem;color:#475569;margin-top:4px">Lead captured · Follow-up scheduled</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     SLIDE 4 — How It Works
+════════════════════════════════════════════════════════════ -->
+<div class="slide slide-4" id="slide-4">
+  <div style="text-align:center;width:100%;max-width:900px">
+    <div class="eyebrow">The Experience</div>
+    <div class="h2" style="margin-bottom:8px">9 Steps. <span class="accent">Fully Automated.</span></div>
+    <div class="body" style="margin:0 auto 36px;text-align:center">Every homeowner goes through a guided journey that feels like a premium tool — not a contact form.</div>
+    <div class="card-grid cols-3" style="grid-template-columns:repeat(3,1fr)">
+      <div class="card">
+        <div class="card-icon">📍</div>
+        <div class="card-title">1 — Address Entry</div>
+        <div class="card-body">Homeowner types their address with Google-powered autocomplete. Satellite view loads instantly.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🛰️</div>
+        <div class="card-title">2-4 — Property Details</div>
+        <div class="card-body">They pin their roof on the map, confirm ownership status, and select their roofing material.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">📊</div>
+        <div class="card-title">5-6 — Live Scan</div>
+        <div class="card-body">An animated scanning sequence analyzes the satellite data and outputs a precise square footage estimate.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">👤</div>
+        <div class="card-title">7-9 — Contact Capture</div>
+        <div class="card-body">Name, email, and phone are collected naturally — the homeowner wants their results, so they convert.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">💵</div>
+        <div class="card-title">Cost Estimate</div>
+        <div class="card-body">A personalized cost range is displayed based on their material selection and roof size.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">✅</div>
+        <div class="card-title">Lead Delivered</div>
+        <div class="card-body">You receive the complete lead: address, sq ft, material, name, email, and phone — ready to close.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     SLIDE 5 — What You Receive
+════════════════════════════════════════════════════════════ -->
+<div class="slide slide-5" id="slide-5">
+  <div class="two-col">
+    <div class="left">
+      <div class="eyebrow">Lead Intelligence</div>
+      <div class="h2" style="margin-bottom:16px">Every Lead Arrives <span class="accent">Pre-Qualified</span></div>
+      <div class="divider"></div>
+      <div class="body" style="margin-bottom:28px">Unlike a generic contact form, RoofScan Pro collects the exact data your team needs to make a confident, personalized follow-up call.</div>
+      <div class="check-list">
+        <div class="check-item">Full property address with GPS coordinates</div>
+        <div class="check-item">Roof square footage (satellite-measured)</div>
+        <div class="check-item">Preferred roofing material</div>
+        <div class="check-item">Ownership status confirmed</div>
+        <div class="check-item">Name, email, and phone number</div>
+        <div class="check-item">Estimated project budget range</div>
+      </div>
+    </div>
+    <div class="right">
+      <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:28px">
+        <div style="font-size:.7rem;color:#10b981;font-weight:700;letter-spacing:.1em;margin-bottom:20px">SAMPLE LEAD PROFILE</div>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;justify-content:space-between;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,.06)">
+            <span style="font-size:.8rem;color:#475569">Name</span>
+            <span style="font-size:.8rem;color:#e2e8f0;font-weight:600">Michael Torres</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,.06)">
+            <span style="font-size:.8rem;color:#475569">Address</span>
+            <span style="font-size:.8rem;color:#e2e8f0;font-weight:600">4821 W Camelback Rd</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,.06)">
+            <span style="font-size:.8rem;color:#475569">Roof Size</span>
+            <span style="font-size:.8rem;color:#10b981;font-weight:700">2,847 sq ft</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,.06)">
+            <span style="font-size:.8rem;color:#475569">Material</span>
+            <span style="font-size:.8rem;color:#e2e8f0;font-weight:600">Asphalt Shingles</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,.06)">
+            <span style="font-size:.8rem;color:#475569">Est. Budget</span>
+            <span style="font-size:.8rem;color:#60a5fa;font-weight:700">$9,900 – $15,600</span>
+          </div>
+          <div style="display:flex;justify-content:space-between">
+            <span style="font-size:.8rem;color:#475569">Ownership</span>
+            <span style="font-size:.8rem;color:#10b981;font-weight:600">✓ Owner</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     SLIDE 6 — Technology
+════════════════════════════════════════════════════════════ -->
+<div class="slide slide-6" id="slide-6">
+  <div style="text-align:center;max-width:860px">
+    <div class="eyebrow">Technology Stack</div>
+    <div class="h2" style="margin-bottom:8px">Built on <span class="accent">Enterprise-Grade</span> Infrastructure</div>
+    <div class="body" style="margin:0 auto 40px;text-align:center">Every component is production-ready, secure, and built to scale with your business.</div>
+    <div class="card-grid cols-2">
+      <div class="card" style="text-align:left;display:flex;gap:16px;align-items:flex-start">
+        <div style="font-size:1.8rem">🗺️</div>
+        <div>
+          <div class="card-title">Google Maps Platform</div>
+          <div class="card-body">Satellite imagery, address autocomplete, and GPS-precise roof pinning powered by the world's most accurate mapping data.</div>
+        </div>
+      </div>
+      <div class="card" style="text-align:left;display:flex;gap:16px;align-items:flex-start">
+        <div style="font-size:1.8rem">☁️</div>
+        <div>
+          <div class="card-title">Cloud Hosted · Always On</div>
+          <div class="card-body">Deployed on Railway's global infrastructure. No downtime, no maintenance, automatically scales with traffic spikes.</div>
+        </div>
+      </div>
+      <div class="card" style="text-align:left;display:flex;gap:16px;align-items:flex-start">
+        <div style="font-size:1.8rem">🔒</div>
+        <div>
+          <div class="card-title">SSL Encrypted</div>
+          <div class="card-body">Every connection is HTTPS-secured. Homeowner data is protected end-to-end — builds trust and meets compliance standards.</div>
+        </div>
+      </div>
+      <div class="card" style="text-align:left;display:flex;gap:16px;align-items:flex-start">
+        <div style="font-size:1.8rem">📱</div>
+        <div>
+          <div class="card-title">Mobile-First Design</div>
+          <div class="card-body">Fully responsive across all devices. Most homeowners will discover your tool on a phone — it works flawlessly.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     SLIDE 7 — ROI
+════════════════════════════════════════════════════════════ -->
+<div class="slide slide-7" id="slide-7">
+  <div class="two-col">
+    <div class="left">
+      <div class="eyebrow">Business Impact</div>
+      <div class="h2" style="margin-bottom:16px">What This Means for <span class="accent">Your Revenue</span></div>
+      <div class="divider"></div>
+      <div class="body" style="margin-bottom:32px">A single roofing job averages $8,000–$25,000. RoofScan Pro converts cold website visitors into warm, pre-qualified leads — dramatically improving your close rate.</div>
+      <div class="stat-grid" style="grid-template-columns:1fr 1fr;gap:16px">
+        <div class="stat" style="padding:20px">
+          <div class="stat-num" style="font-size:2rem">3×</div>
+          <div class="stat-label">Higher conversion vs generic contact forms</div>
+        </div>
+        <div class="stat" style="padding:20px">
+          <div class="stat-num" style="font-size:2rem">24/7</div>
+          <div class="stat-label">Lead capture with zero staff required</div>
+        </div>
+      </div>
+    </div>
+    <div class="right">
+      <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:32px">
+        <div style="font-size:.7rem;color:#10b981;font-weight:700;letter-spacing:.1em;margin-bottom:24px">LEAD QUALITY COMPARISON</div>
+        <div class="roi-row">
+          <div class="roi-label"><span>RoofScan Pro Lead</span><span>92% complete data</span></div>
+          <div class="roi-track"><div class="roi-fill" style="width:92%"></div></div>
+        </div>
+        <div class="roi-row">
+          <div class="roi-label"><span>Standard Contact Form</span><span>35% complete data</span></div>
+          <div class="roi-track"><div class="roi-fill" style="width:35%;background:linear-gradient(90deg,#475569,#64748b)"></div></div>
+        </div>
+        <div class="roi-row">
+          <div class="roi-label"><span>Paid Directory Lead</span><span>48% complete data</span></div>
+          <div class="roi-track"><div class="roi-fill" style="width:48%;background:linear-gradient(90deg,#475569,#64748b)"></div></div>
+        </div>
+        <div style="margin-top:24px;padding-top:20px;border-top:1px solid rgba(255,255,255,.06)">
+          <div style="font-size:.75rem;color:#64748b;margin-bottom:8px">Average job value captured per lead</div>
+          <div style="font-size:2rem;font-weight:900;background:linear-gradient(135deg,#60a5fa,#10b981);-webkit-background-clip:text;-webkit-text-fill-color:transparent">$12,400</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     SLIDE 8 — Customization
+════════════════════════════════════════════════════════════ -->
+<div class="slide slide-8" id="slide-8">
+  <div style="text-align:center;max-width:900px">
+    <div class="eyebrow">Made for Your Brand</div>
+    <div class="h2" style="margin-bottom:8px">Fully <span class="accent">White-Labeled</span> & Configurable</div>
+    <div class="body" style="margin:0 auto 40px;text-align:center">Every element of RoofScan Pro can be tailored to match your company's identity — your name, your colors, your phone number.</div>
+    <div class="card-grid cols-3">
+      <div class="card">
+        <div class="card-icon">🎨</div>
+        <div class="card-title">Brand Colors & Logo</div>
+        <div class="card-body">Replace all colors, fonts, and logos with your company's identity. Homeowners never see anything but your brand.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">📞</div>
+        <div class="card-title">Your Contact Info</div>
+        <div class="card-body">Your phone number, business name, and CTAs are displayed throughout the experience.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔗</div>
+        <div class="card-title">Custom Domain</div>
+        <div class="card-body">Host it at roof.yourbusiness.com or embed it directly into your existing website as a page or widget.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">💬</div>
+        <div class="card-title">Custom Messaging</div>
+        <div class="card-body">Adjust every headline, button label, and confirmation message to match your sales language and tone.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">📬</div>
+        <div class="card-title">Lead Delivery</div>
+        <div class="card-body">Leads can be sent to email, CRM, Airtable, or any system your team already uses.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🧱</div>
+        <div class="card-title">Material & Pricing</div>
+        <div class="card-body">Adjust the material options and cost-per-square-foot rates to reflect your actual pricing.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     SLIDE 9 — Stats
+════════════════════════════════════════════════════════════ -->
+<div class="slide slide-9" id="slide-9">
+  <div style="text-align:center;max-width:900px">
+    <div class="eyebrow">By the Numbers</div>
+    <div class="h2" style="margin-bottom:40px">Designed to <span class="accent">Perform</span></div>
+    <div class="stat-grid" style="margin:0 auto 48px">
+      <div class="stat">
+        <div class="stat-num">9</div>
+        <div class="stat-label">Guided steps that build trust before asking for contact info</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">&lt;2m</div>
+        <div class="stat-label">Average time for a homeowner to complete the full flow</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">100%</div>
+        <div class="stat-label">Of leads include roof size, material, and full contact details</div>
+      </div>
+    </div>
+    <div class="quote-block" style="margin:0 auto">
+      <div style="font-size:.85rem;color:#475569;margin-bottom:20px">THE INSIGHT BEHIND THE DESIGN</div>
+      <div class="quote-text">"Homeowners don't want to fill out a form. They want to <em>get something</em>. RoofScan Pro gives them value first — and earns the lead in return."</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     SLIDE 10 — CTA / Close
+════════════════════════════════════════════════════════════ -->
+<div class="slide slide-10" id="slide-10">
+  <div style="text-align:center;max-width:800px">
+    <div class="eyebrow">Ready to See It Live?</div>
+    <div class="h1" style="margin-bottom:24px">Your Roof. <span class="accent">Measured Instantly.</span></div>
+    <div class="body" style="margin:0 auto 40px;text-align:center">Experience the full homeowner journey firsthand. Enter any property address and see exactly what your future customers will see.</div>
+    <div class="cta-box">
+      <div style="font-size:1rem;color:#94a3b8;margin-bottom:8px">Try the live demo now</div>
+      <div style="font-size:1.6rem;font-weight:800;color:#10b981;letter-spacing:-.02em;margin-bottom:24px">roofscan.up.railway.app</div>
+      <div style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap">
+        <span class="tag">No login required</span>
+        <span class="tag">Works on any device</span>
+        <span class="tag">Live & always accessible</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     Navigation
+════════════════════════════════════════════════════════════ -->
+<div class="nav">
+  <button class="nav-btn" id="btn-prev" onclick="changeSlide(-1)">‹</button>
+  <div id="dots"></div>
+  <button class="nav-btn" id="btn-next" onclick="changeSlide(1)">›</button>
+  <div class="slide-count" id="slide-count">1 / 10</div>
+</div>
+
+<script>
+  const TOTAL = 10;
+  let current = 1;
+
+  function buildDots() {
+    const dots = document.getElementById('dots');
+    dots.style.display = 'flex';
+    dots.style.gap = '6px';
+    dots.style.alignItems = 'center';
+    for (let i = 1; i <= TOTAL; i++) {
+      const d = document.createElement('div');
+      d.className = 'nav-dot' + (i === 1 ? ' active' : '');
+      d.onclick = () => goTo(i);
+      d.id = `dot-${i}`;
+      dots.appendChild(d);
+    }
+  }
+
+  function goTo(n) {
+    if (n < 1 || n > TOTAL) return;
+    const prev = document.getElementById(`slide-${current}`);
+    prev.classList.remove('active');
+    prev.classList.add('exit');
+    setTimeout(() => prev.classList.remove('exit'), 600);
+
+    document.getElementById(`dot-${current}`).classList.remove('active');
+    current = n;
+    document.getElementById(`slide-${current}`).classList.add('active');
+    document.getElementById(`dot-${current}`).classList.add('active');
+    document.getElementById('slide-count').textContent = `${current} / ${TOTAL}`;
+    document.getElementById('progress-bar').style.width = `${(current / TOTAL) * 100}%`;
+  }
+
+  function changeSlide(dir) { goTo(current + dir); }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') changeSlide(1);
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') changeSlide(-1);
+  });
+
+  buildDots();
+  document.getElementById('progress-bar').style.width = `${(1 / TOTAL) * 100}%`;
+</script>
+</body>
+</html>
