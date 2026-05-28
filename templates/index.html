@@ -147,10 +147,8 @@
 <div id="wizard-wrap">
   <div class="wz-card">
 
-    <!-- Progress indicator -->
-    <div class="progress-bar" id="prog-bar">
-      <!-- built by JS -->
-    </div>
+    <!-- Step indicator -->
+    <div id="step-indicator" style="font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#1a56db;margin-bottom:16px;text-align:center"></div>
 
     <!-- Step 1: Address -->
     <div class="step active" id="s1">
@@ -314,35 +312,12 @@ let currentStep = 1;
 let map, marker, scanMapObj, resultMapObj;
 const TOTAL_STEPS = 9;
 
-// ── Progress bar ───────────────────────────────────────────────────────────
-const LABELS = ['Step 1','Step 2','Step 3','Step 4','Step 5','Step 6','Step 7','Step 8','Step 9'];
-function buildProgress() {
-  const bar = document.getElementById('prog-bar');
-  bar.innerHTML = '';
-  for (let i = 1; i <= TOTAL_STEPS; i++) {
-    const wrap = document.createElement('div');
-    wrap.className = 'pb-step';
-    wrap.id = `pb${i}`;
-    wrap.innerHTML = `<div class="pb-dot" id="pbd${i}">${i}</div><div class="pb-label" id="pbl${i}">${LABELS[i-1]}</div>`;
-    bar.appendChild(wrap);
-    if (i < TOTAL_STEPS) {
-      const line = document.createElement('div');
-      line.className = 'pb-line';
-      line.id = `pbl-line${i}`;
-      bar.appendChild(line);
-    }
-  }
-}
+// ── Step indicator ─────────────────────────────────────────────────────────
+function buildProgress() {}
 function updateProgress(s) {
-  for (let i = 1; i <= TOTAL_STEPS; i++) {
-    const dot = document.getElementById(`pbd${i}`);
-    const lbl = document.getElementById(`pbl${i}`);
-    const line = document.getElementById(`pbl-line${i}`);
-    dot.className = 'pb-dot' + (i < s ? ' done' : i === s ? ' active' : '');
-    if (i < s) { dot.textContent = '✓'; } else { dot.textContent = i; }
-    lbl.className = 'pb-label' + (i < s ? ' done' : i === s ? ' active' : '');
-    if (line) line.className = 'pb-line' + (i < s ? ' done' : '');
-  }
+  const el = document.getElementById('step-indicator');
+  if (el && s <= TOTAL_STEPS) el.textContent = `Step ${s} of ${TOTAL_STEPS}`;
+  else if (el) el.textContent = '';
 }
 
 // ── Step navigation ────────────────────────────────────────────────────────
