@@ -12,10 +12,8 @@
 
     /* ── Header ── */
     header{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(15,23,42,.92);backdrop-filter:blur(8px);border-bottom:1px solid rgba(255,255,255,.08);height:58px;display:flex;align-items:center;justify-content:space-between;padding:0 28px}
-    .logo{display:flex;align-items:center;gap:10px}
-    .logo-icon{width:34px;height:34px;background:linear-gradient(135deg,#1a56db,#10b981);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px}
-    .logo-text{font-size:1.05rem;font-weight:800;color:#fff;letter-spacing:-.02em}
-    .logo-text span{color:#10b981}
+    .logo{display:flex;align-items:center}
+    .logo img{height:44px;width:auto}
     .hdr-cta{font-size:.75rem;color:#94a3b8;display:flex;align-items:center;gap:16px}
     .hdr-phone{color:#e2e8f0;font-weight:600;text-decoration:none;font-size:.82rem}
     .hdr-phone:hover{color:#10b981}
@@ -133,8 +131,7 @@
 
 <header>
   <div class="logo">
-    <div class="logo-icon">🏠</div>
-    <div class="logo-text">Roof<span>Grid</span> AI</div>
+    <img src="/static/roofgrid-logo.png" alt="RoofGrid AI"/>
   </div>
   <div class="hdr-cta">
     <a class="hdr-phone" href="tel:18005551234">📞 (800) 555-1234</a>
