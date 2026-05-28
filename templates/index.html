@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>RoofScan Pro — Free Instant Roof Measurement</title>
+  <title>RoofGrid AI — Free Instant Roof Measurement</title>
   <link href="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css" rel="stylesheet"/>
   <link href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.css" rel="stylesheet"/>
   <style>
@@ -20,9 +20,8 @@
     .hdr-phone{color:#e2e8f0;font-weight:600;text-decoration:none;font-size:.82rem}
     .hdr-phone:hover{color:#10b981}
 
-    /* ── Map background ── */
-    #map-bg{position:fixed;top:0;left:0;right:0;bottom:0;z-index:0}
-    #map-bg.no-map{background:linear-gradient(180deg,#0f172a 0%,#1e293b 100%)}
+    /* ── Image background ── */
+    #map-bg{position:fixed;top:0;left:0;right:0;bottom:0;z-index:0;background:url('/static/roof-bg.png') center/cover no-repeat;}
 
     /* ── Wizard overlay ── */
     #wizard-wrap{position:fixed;top:58px;left:0;right:0;bottom:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px}
@@ -135,7 +134,7 @@
 <header>
   <div class="logo">
     <div class="logo-icon">🏠</div>
-    <div class="logo-text">Roof<span>Scan</span> Pro</div>
+    <div class="logo-text">Roof<span>Grid</span> AI</div>
   </div>
   <div class="hdr-cta">
     <a class="hdr-phone" href="tel:18005551234">📞 (800) 555-1234</a>
@@ -356,16 +355,7 @@ function initGeocoder() {
   });
 }
 
-function initBgMap(lat, lng) {
-  document.getElementById('map-bg').classList.remove('no-map');
-  if (window._bgMap) { window._bgMap.setCenter([lng, lat]); return; }
-  window._bgMap = new mapboxgl.Map({
-    container: 'map-bg',
-    style: 'mapbox://styles/mapbox/satellite-v9',
-    center: [lng, lat], zoom: 18,
-    interactive: false,
-  });
-}
+function initBgMap(lat, lng) {}
 
 function initStepMap() {
   if (map) { map.resize(); map.setCenter([lead.lng, lead.lat]); return; }
@@ -520,7 +510,6 @@ function startOver() {
   document.getElementById('s1').classList.add('active');
   updateProgress(1);
   document.getElementById('btn-s1').disabled = true;
-  document.getElementById('map-bg').classList.add('no-map');
   document.querySelectorAll('.radio-opt').forEach(o => o.classList.remove('selected'));
   document.querySelectorAll('.mat-opt').forEach(o => o.classList.remove('selected'));
 }
