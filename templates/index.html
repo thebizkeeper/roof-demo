@@ -17,6 +17,8 @@
     .hdr-cta{font-size:.75rem;color:#64748b;display:flex;align-items:center;gap:16px}
     .hdr-phone{color:#0f172a;font-weight:600;text-decoration:none;font-size:.82rem}
     .hdr-phone:hover{color:#1a56db}
+    .hdr-tagline{position:absolute;left:50%;transform:translateX(-50%);font-size:.95rem;font-weight:600;color:#0f172a;letter-spacing:-.01em;text-align:center;white-space:nowrap}
+    @media(max-width:768px){.hdr-tagline{display:none}}
 
     /* ── Image background ── */
     #map-bg{position:fixed;top:0;left:0;right:0;bottom:0;z-index:0;background:url('/static/roof-bg.png') center/cover no-repeat;}
@@ -133,7 +135,7 @@
   <div class="logo">
     <img src="/static/roofgrid-logo.png" alt="RoofGrid AI"/>
   </div>
-  <div style="position:absolute;left:50%;transform:translateX(-50%);font-size:.95rem;font-weight:600;color:#0f172a;letter-spacing:-.01em;text-align:center">Measure your roof and get a quote in real time</div>
+  <div class="hdr-tagline">Measure your roof and get a quote in real time</div>
   <div class="hdr-cta">
     <a class="hdr-phone" href="tel:18005551234">📞 (800) 555-1234</a>
   </div>
