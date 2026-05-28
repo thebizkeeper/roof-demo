@@ -2,11 +2,11 @@ from flask import Flask, render_template, request, jsonify
 import os
 
 app = Flask(__name__)
-GMAPS_KEY = os.environ.get("GOOGLE_MAPS_API_KEY", "")
+MAPBOX_TOKEN = os.environ.get("MAPBOX_TOKEN", "")
 
 @app.route("/")
 def index():
-    return render_template("index.html", gmaps_key=GMAPS_KEY)
+    return render_template("index.html", mapbox_token=MAPBOX_TOKEN)
 
 @app.route("/api/lead", methods=["POST"])
 def save_lead():
