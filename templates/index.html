@@ -302,6 +302,8 @@
   </div>
 </div>
 
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js"></script>
+<script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.min.js"></script>
 <script>
 // ── State ──────────────────────────────────────────────────────────────────
 const lead = { address:'', lat:0, lng:0, ownership:'', material:'', sqft:0, name:'', email:'', phone:'' };
@@ -536,8 +538,6 @@ buildProgress();
 updateProgress(1);
 </script>
 
-<script src="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js"></script>
-<script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.min.js"></script>
 <script>
   initGeocoder();
 </script>
