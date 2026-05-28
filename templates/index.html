@@ -316,7 +316,7 @@ const TOTAL_STEPS = 9;
 function buildProgress() {}
 function updateProgress(s) {
   const el = document.getElementById('step-indicator');
-  if (el && s <= TOTAL_STEPS) el.textContent = `Step ${s} of ${TOTAL_STEPS}`;
+  if (el && s <= TOTAL_STEPS) el.textContent = `Step ${s}`;
   else if (el) el.textContent = '';
 }
 
