@@ -297,6 +297,7 @@
         <div class="estimate-label">Estimated Project Cost Range</div>
       </div>
       <div id="detail-rows"></div>
+      <button class="btn-back" style="margin-top:20px;font-size:.85rem" onclick="startOver()">↩ Start Over</button>
     </div>
 
   </div>
@@ -531,6 +532,20 @@ function showThankYou() {
   ).join('');
 
   goStep(10);
+}
+
+// ── Start Over ─────────────────────────────────────────────────────────────
+function startOver() {
+  Object.assign(lead, { address:'', lat:0, lng:0, ownership:'', material:'', sqft:0, name:'', email:'', phone:'' });
+  map = null; marker = null; scanMapObj = null; resultMapObj = null;
+  document.getElementById('s10').classList.remove('active');
+  currentStep = 1;
+  document.getElementById('s1').classList.add('active');
+  updateProgress(1);
+  document.getElementById('btn-s1').disabled = true;
+  document.getElementById('map-bg').classList.add('no-map');
+  document.querySelectorAll('.radio-opt').forEach(o => o.classList.remove('selected'));
+  document.querySelectorAll('.mat-opt').forEach(o => o.classList.remove('selected'));
 }
 
 // ── Init ───────────────────────────────────────────────────────────────────
