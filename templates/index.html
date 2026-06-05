@@ -290,7 +290,7 @@
     <div class="step" id="s10">
       <div class="ty-icon">✓</div>
       <div class="ty-title">You're All Set!</div>
-      <div class="ty-sub">Your free roof measurement report is being prepared. A specialist will contact you within 24 hours.</div>
+      <div class="ty-sub">Your AI roof report is being emailed to you now. Check your inbox — it includes your full measurement, cost estimate, and timeline.</div>
       <div class="estimate-box">
         <div class="estimate-range" id="cost-range">—</div>
         <div class="estimate-label">Estimated Project Cost Range</div>
@@ -306,9 +306,19 @@
 <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.min.js"></script>
 <script>
 // ── State ──────────────────────────────────────────────────────────────────
-const lead = { address:'', lat:0, lng:0, ownership:'', material:'', sqft:0, name:'', email:'', phone:'' };
+const lead = {
+  address:'', lat:0, lng:0, ownership:'', material:'',
+  sqft:0, sqft_low:0, sqft_high:0, facets:4,
+  pitch:'', complexity:'',
+  cost_mat_low:0, cost_mat_high:0,
+  cost_labor_low:0, cost_labor_high:0,
+  cost_total_low:0, cost_total_high:0,
+  timeline:null,
+  name:'', email:'', phone:''
+};
 let currentStep = 1;
 let map, marker, scanMapObj, resultMapObj;
+let analyzePromise = null;
 const TOTAL_STEPS = 9;
 
 // ── Step indicator ─────────────────────────────────────────────────────────
@@ -402,12 +412,21 @@ function initResultMap() {
 function startScan() {
   initScanMap();
   const fill = document.getElementById('prog-fill');
+  const scanLabel = document.querySelector('.scan-label');
   const checks = ['ck1','ck2','ck3'];
   let pct = 0;
   checks.forEach(id => document.getElementById(id).classList.remove('done'));
   fill.style.width = '0%';
+  if (scanLabel) scanLabel.textContent = 'ANALYZING SATELLITE DATA';
 
-  const interval = setInterval(() => {
+  // Fire AI analysis in parallel with animation
+  analyzePromise = fetch('/api/analyze', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ address: lead.address, lat: lead.lat, lng: lead.lng, material: lead.material }),
+  }).then(r => r.json()).catch(() => null);
+
+  const interval = setInterval(async () => {
     pct += 2;
     fill.style.width = pct + '%';
     if (pct === 30) document.getElementById('ck1').classList.add('done');
@@ -415,7 +434,27 @@ function startScan() {
     if (pct === 90) document.getElementById('ck3').classList.add('done');
     if (pct >= 100) {
       clearInterval(interval);
-      lead.sqft = Math.floor(Math.random() * 1200 + 2200); // 2200–3400 ft²
+      if (scanLabel) scanLabel.textContent = 'PROCESSING RESULTS…';
+
+      const aiData = await analyzePromise;
+      if (aiData && aiData.ok) {
+        lead.sqft          = aiData.sq_ft;
+        lead.sqft_low      = aiData.sq_ft_low;
+        lead.sqft_high     = aiData.sq_ft_high;
+        lead.facets        = aiData.facets;
+        lead.pitch         = aiData.pitch;
+        lead.complexity    = aiData.complexity;
+        lead.cost_mat_low  = aiData.cost_mat_low;
+        lead.cost_mat_high = aiData.cost_mat_high;
+        lead.cost_labor_low  = aiData.cost_labor_low;
+        lead.cost_labor_high = aiData.cost_labor_high;
+        lead.cost_total_low  = aiData.cost_total_low;
+        lead.cost_total_high = aiData.cost_total_high;
+        lead.timeline      = aiData.timeline;
+      } else {
+        lead.sqft = Math.floor(Math.random() * 1200 + 2200);
+      }
+
       document.getElementById('sqft-display').textContent = lead.sqft.toLocaleString();
       setTimeout(() => goStep(6), 600);
     }
@@ -463,36 +502,35 @@ function formatPhone(inp) {
 // ── Submit ─────────────────────────────────────────────────────────────────
 async function submitLead() {
   lead.phone = document.getElementById('inp-phone').value.trim();
-  await fetch('/api/lead', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(lead),
-  }).catch(() => {});
+  const btn = document.getElementById('btn-s9');
+  btn.disabled = true;
+  btn.textContent = 'Generating your report…';
+
+  try {
+    await fetch('/api/report', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(lead),
+    });
+  } catch(e) {}
+
   showThankYou();
 }
 
 function showThankYou() {
-  // Cost estimate based on material
-  const rates = {
-    'Asphalt Shingles': [3.5, 5.5],
-    'Wood/Composite': [5, 8],
-    'Metal Roofing': [7, 12],
-    'Tile': [8, 14],
-    'Flat / TPO / Foam': [4, 7],
-    'Not Sure Yet': [4, 8],
-  };
-  const [low, high] = rates[lead.material] || [4, 8];
-  const sqft = lead.sqft;
-  const lo = Math.round(sqft * low / 100) * 100;
-  const hi = Math.round(sqft * high / 100) * 100;
-  document.getElementById('cost-range').textContent = `$${lo.toLocaleString()} – $${hi.toLocaleString()}`;
+  const lo = lead.cost_total_low;
+  const hi = lead.cost_total_high;
+  document.getElementById('cost-range').textContent =
+    lo && hi ? `$${lo.toLocaleString()} – $${hi.toLocaleString()}` : '—';
+
+  const timeline = lead.timeline ? lead.timeline.range : 'N/A';
 
   const rows = [
-    ['Address', lead.address],
-    ['Roof Area', sqft.toLocaleString() + ' sq ft'],
-    ['Material', lead.material],
-    ['Name', lead.name],
-    ['Email', lead.email],
+    ['Address',   lead.address],
+    ['Roof Area', (lead.sqft || 0).toLocaleString() + ' sq ft'],
+    ['Material',  lead.material],
+    ['Timeline',  timeline],
+    ['Email',     lead.email],
   ];
   document.getElementById('detail-rows').innerHTML = rows.map(([k,v]) =>
     `<div class="detail-row"><span>${k}</span><span class="detail-val">${v}</span></div>`

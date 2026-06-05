@@ -1,12 +1,29 @@
-# RoofScan Pro — Project Notes
+# RoofGrid AI — Project Notes
 
 ## What This Is
-A lead capture demo app for roofing companies. Homeowners enter their address, go through a 9-step guided flow, and submit their name/email/phone. The roofing company receives the lead via email and Google Sheets/Notion.
+**RoofGrid AI is a SaaS roof measurement and estimation platform.**
 
-Built by The Biz Keeper (Sam) to sell to roofing clients sourced by Costin (WebGrit).
+A homeowner or contractor enters an address. The app captures a satellite image via Mapbox, sends it to Claude Vision AI for analysis, and emails a branded PDF report with:
+- AI-estimated roof square footage
+- Roof complexity and pitch
+- Material and labor cost estimate range
+- Estimated contractor completion timeline
+
+**Target customers (paid subscribers):**
+- Roofing contractors
+- Insurance adjusters
+- Property managers
+- Solar companies
+
+**Business model:** Freemium SaaS — modeled after roofr.com
+- Free tier: homeowner enters address, gets 1 AI report emailed to them
+- Pro tier ($49–99/mo): unlimited reports for contractors/adjusters
+- Enterprise: custom pricing for insurance companies
+
+**Not a white-label lead tool anymore.** Previously built as a lead capture demo to sell to individual roofing companies via Costin (WebGrit). Now pivoting to a standalone SaaS product owned and operated by Sam/The Biz Keeper.
 
 ## Live URLs
-- **App:** https://roofscan.up.railway.app
+- **App:** https://www.roofgridai.com (also roofscan.up.railway.app)
 - **GitHub:** https://github.com/thebizkeeper/roof-demo
 - **Presentation:** https://roofscan.up.railway.app/static/presentation.html
 
@@ -14,90 +31,113 @@ Built by The Biz Keeper (Sam) to sell to roofing clients sourced by Costin (WebG
 - **Backend:** Python / Flask
 - **Frontend:** Vanilla HTML/CSS/JS (single template: `templates/index.html`)
 - **Maps:** Mapbox GL JS v3.3 + Mapbox Geocoder v5
+- **AI Measurement:** Claude Vision API (Anthropic) — analyzes Mapbox satellite image
+- **Report Delivery:** Resend.com — sends PDF from reports@roofgridai.com
+- **PDF Generation:** ReportLab or WeasyPrint (Python)
 - **Deployment:** Railway (auto-deploys from GitHub `main` branch)
+- **Domain:** roofgridai.com (Cloudflare DNS → Railway)
 - **Mapbox account:** thebizkeeper (Mapbox token in Railway env vars)
 
 ## Environment Variables (set in Railway dashboard)
 | Variable | Value |
 |---|---|
 | `MAPBOX_TOKEN` | pk.eyJ1... (set in Railway) |
-| `NOTIFY_EMAIL` | sam@thebizkeeper.com (temporary — will be client's email) |
-| `GMAIL_USER` | Gmail address to send from |
-| `GMAIL_APP_PASSWORD` | 16-char Gmail App Password |
+| `ANTHROPIC_API_KEY` | Claude Vision API key (to be added) |
+| `RESEND_API_KEY` | Resend.com API key (to be added) |
+| `NOTIFY_EMAIL` | sam@thebizkeeper.com (internal alerts) |
+| `GMAIL_USER` | Gmail address (legacy, may replace with Resend) |
+| `GMAIL_APP_PASSWORD` | 16-char Gmail App Password (legacy) |
 | `GOOGLE_SHEETS_ID` | Sheet ID (not yet configured) |
 | `GOOGLE_SERVICE_ACCOUNT_JSON` | Full JSON (not yet configured) |
 
-## Lead Flow
+## Current App Flow (existing — no changes yet)
 1. Address (Mapbox autocomplete)
 2. Pin roof on satellite map
 3. Ownership status
 4. Roofing material selection
 5. Scanning animation
-6. Roof sq ft result (currently random 2,200–3,400 sq ft — placeholder)
+6. Roof sq ft result (currently FAKE — random 2,200–3,400 sq ft placeholder)
 7. Name
 8. Email
 9. Phone
 → Thank you page with cost estimate range + Start Over button
 
-## Lead Delivery (built, needs env vars)
-- Email notification to `NOTIFY_EMAIL` via Gmail SMTP
-- Notion integration (to be configured)
+## Planned AI Report Flow (to be built)
+1. Address entered → Mapbox captures satellite image at those coordinates
+2. Image + metadata sent to Claude Vision API
+3. Claude returns: sq ft estimate, complexity, pitch, facet count
+4. Backend calculates: material cost range, labor cost range, contractor timeline
+5. PDF report generated with RoofGrid AI branding
+6. Report emailed from reports@roofgridai.com to the user
 
-## Open Questions / Decisions Needed
-See bottom of this file.
+## AI Report Contents
+```
+RoofGrid AI — Roof Analysis Report
+Report ID: RG-XXXXXX
+Generated: [date]
 
----
+Property: [address]
 
-## Open Questions
+MEASUREMENTS
+  Estimated Roof Area:     X,XXX sq ft
+  Roof Sections (Facets):  X
+  Pitch / Slope:           Low / Moderate / Steep
+  Complexity:              Simple / Moderate / Complex
 
-### 1. Roof Measurement Tool
-**Decision needed by: Costin + client**
-Current measurement is a random number (2,200–3,400 sq ft). Options:
-- A) Keep as demo placeholder — rep visits for real measurement
-- B) Use property lot size from a free real estate API as a proxy
-- C) Upgrade to EagleView or Nearmap (paid per-measurement, what big companies use)
+MATERIAL SELECTED
+  [Asphalt / Metal / Tile / etc.]
 
-### 2. Final Results Page — Show Price or Not?
-**Decision needed by: Costin + client**
-- A) Show cost estimate range to homeowner on screen (current behavior)
-- B) Show "An estimate will be emailed to you within 24 hours" — client sends manually
-  → If B: build admin panel where client enters their material/labor rates and the app calculates the estimate for them to review and send
+COST ESTIMATE
+  Materials:     $X,XXX – $X,XXX
+  Labor:         $X,XXX – $X,XXX
+  Total Range:   $X,XXX – $X,XXX
 
-### 3. Admin Dashboard
-**Planned feature (build after client decides on #2)**
-Private login at `/admin` for the roofing company client. Will include:
-- Update notification email address
-- Set material costs per sq ft (Asphalt, Metal, Tile, etc.)
-- Set labor rate
-- View all leads
-- Edit and send estimates to homeowners
+ESTIMATED COMPLETION TIMELINE
+  Typical Duration:    X – X days  (or X – X weeks)
+  Based on: [sq ft] · [complexity] · [region]
 
-### 4. Lead Storage — Notion
-**Action needed: Sam**
-Set up Notion integration for lead logging. Needs:
-- Notion account + database created
-- Notion API key → add to Railway as `NOTION_TOKEN`
-- Database ID → add to Railway as `NOTION_DATABASE_ID`
+  * AI-generated estimate. For certified measurement, contact a licensed contractor.
+```
 
-### 5. Email Notifications
-**Action needed: Sam**
-Gmail App Password not yet configured. Needs:
-- Google account 2-step verification enabled
-- App Password generated (Google Account → Security → App Passwords)
-- Add to Railway: `GMAIL_USER` and `GMAIL_APP_PASSWORD`
+## Timeline Logic (rule-based, no AI needed)
+| Roof Size + Complexity | Timeline |
+|---|---|
+| Under 2,000 sq ft + Simple | 1 – 2 days |
+| 2,000–2,800 sq ft + Moderate | 3 – 5 days |
+| 2,800–3,500 sq ft + Moderate | 5 – 7 days |
+| Large or Complex | 1 – 2 weeks |
+| Very large / Multi-story / Complex | 2 – 3 weeks |
+Weather note appended for Southeast region (Jun–Sep rainy season adds 1–3 days buffer).
 
-### 6. Custom Domain (future)
-Currently at roofscan.up.railway.app. When selling to a client, set up their own domain (e.g. roof.theirclientdomain.com) pointing to Railway.
+## Cost Per Report (our cost)
+- Mapbox satellite image: ~$0.001
+- Claude Vision API analysis: ~$0.03–0.05
+- Resend email delivery: free up to 100/day
+- **Total: ~$0.03–0.06 per report**
 
-### 7. White-Labeling for Each Client
-When selling to multiple roofing companies, each deployment will need:
-- Their company name, logo, colors
-- Their phone number
-- Their notification email
-- Their pricing rates
-Consider making these all env vars so one codebase serves multiple clients.
+## Build Phases
+### Phase 1 — AI Measurement (next up)
+- Replace fake random sq ft with Claude Vision satellite image analysis
+- Add Resend email integration
+- Generate and email PDF report to user
+- Add ANTHROPIC_API_KEY and RESEND_API_KEY to Railway
+
+### Phase 2 — Subscription / Payments
+- Stripe integration for Pro plan signups
+- User accounts and report history
+- Rate limiting on free tier
+
+### Phase 3 — Admin Dashboard
+- Contractor login at /dashboard
+- View all reports ordered
+- Manage account and billing
 
 ## Key People
-- **Sam Shukka** — The Biz Keeper (sam@thebizkeeper.com) — builds and sells the tool
-- **Costin** — WebGrit — has the roofing client relationship
-- **Client** — roofing company (name TBD) — end buyer of this tool
+- **Sam Shukka** — The Biz Keeper (sam@thebizkeeper.com) — sole builder and owner of RoofGrid AI
+- **Costin** — WebGrit — former partner on the lead capture demo version (no longer involved in this pivot)
+
+## Open Items
+1. Get Anthropic API key (claude.ai → API settings)
+2. Sign up for Resend.com, verify roofgridai.com domain, get API key
+3. Build Phase 1 (AI measurement + PDF report + email delivery)
+4. Decide on pricing tiers before Phase 2
