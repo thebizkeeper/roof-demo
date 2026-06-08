@@ -501,6 +501,8 @@ function formatPhone(inp) {
 
 // ── Submit ─────────────────────────────────────────────────────────────────
 async function submitLead() {
+  lead.name  = document.getElementById('inp-name').value.trim();
+  lead.email = document.getElementById('inp-email').value.trim();
   lead.phone = document.getElementById('inp-phone').value.trim();
   const btn = document.getElementById('btn-s9');
   btn.disabled = true;

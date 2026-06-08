@@ -19,14 +19,16 @@ SOUTHEAST_STATES = {"FL", "GA", "AL", "MS", "LA", "SC", "NC"}
 
 
 ZOOM = 19
-IMG_W_PX = 600  # logical pixels (Mapbox base before @2x)
+IMG_W_PX = 600  # logical pixels (Mapbox base)
 IMG_H_PX = 400
+RETINA = 2      # @2x doubles actual pixel count
 
 
 def _feet_per_pixel(lat):
-    """Ground distance per logical pixel at zoom 19 for a given latitude."""
+    """Ground distance per actual pixel in the @2x image."""
     meters = 156543.03392 * math.cos(math.radians(lat)) / (2 ** ZOOM)
-    return meters * 3.28084  # convert to feet
+    feet_per_logical = meters * 3.28084
+    return feet_per_logical / RETINA  # @2x image has 2× pixels per foot
 
 
 def get_satellite_image_url(lng, lat, zoom=ZOOM):
@@ -43,15 +45,17 @@ def analyze_roof(lat, lng, address, material):
     image_url = get_satellite_image_url(lng, lat)
 
     fpp = _feet_per_pixel(lat)
-    img_w_ft = round(IMG_W_PX * fpp)
-    img_h_ft = round(IMG_H_PX * fpp)
+    actual_w = IMG_W_PX * RETINA   # 1200
+    actual_h = IMG_H_PX * RETINA   # 800
+    img_w_ft = round(actual_w * fpp)
+    img_h_ft = round(actual_h * fpp)
 
     prompt = f"""You are a professional roof measurement analyst reviewing a satellite image.
 
 Property address: {address}
 
 IMPORTANT SCALE INFORMATION:
-- This image is {IMG_W_PX} x {IMG_H_PX} logical pixels
+- This image is {actual_w} x {actual_h} pixels (actual pixel dimensions)
 - Ground coverage: {img_w_ft} ft wide x {img_h_ft} ft tall
 - Scale: 1 pixel = {fpp:.2f} feet ({fpp/3.28084:.3f} meters)
 

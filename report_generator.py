@@ -1,6 +1,5 @@
 import io
 import os
-import requests
 from datetime import datetime
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -116,20 +115,6 @@ def generate_pdf_report(data, report_id):
     story.append(prop_table)
     story.append(Spacer(1, 14))
 
-    # ── Satellite image (optional — fetch from Mapbox) ────────────────────────
-    sat_url = data.get("satellite_image_url", "")
-    if sat_url:
-        try:
-            resp = requests.get(sat_url, timeout=8)
-            if resp.status_code == 200:
-                img_buf = io.BytesIO(resp.content)
-                img = RLImage(img_buf, width=7 * inch, height=2.5 * inch)
-                img.hAlign = "CENTER"
-                story.append(img)
-                story.append(Spacer(1, 12))
-        except Exception:
-            pass  # Skip image if fetch fails
-
     # ── Measurements ──────────────────────────────────────────────────────────
     story.append(_section_header("MEASUREMENTS", styles))
     story.append(HRFlowable(width="100%", thickness=1, color=BRAND_GREEN, spaceAfter=8))
@@ -138,9 +123,8 @@ def generate_pdf_report(data, report_id):
         ["Estimated Roof Area",     f'{data.get("sq_ft", 0):,} sq ft  '
                                     f'(range: {data.get("sq_ft_low",0):,} – {data.get("sq_ft_high",0):,} sq ft)'],
         ["Roof Sections (Facets)",  str(data.get("facets", "N/A"))],
-        ["Pitch / Slope",           data.get("pitch", "N/A").capitalize()],
-        ["Complexity",              data.get("complexity", "N/A")],
-        ["AI Confidence",           data.get("confidence", "N/A").capitalize()],
+        ["Pitch / Slope",           (data.get("pitch") or "N/A").capitalize()],
+        ["Complexity",              data.get("complexity") or "N/A"],
     ]
     _add_data_table(story, meas_data)
     if data.get("notes"):
