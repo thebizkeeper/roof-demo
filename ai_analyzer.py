@@ -94,31 +94,29 @@ def analyze_roof(lat, lng, address, material):
     fpp = _logical_fpp(lat)
     img_w_ft = round(IMG_W_PX * fpp)
     img_h_ft = round(IMG_H_PX * fpp)
-    total_area = img_w_ft * img_h_ft
 
     prompt = f"""You are a professional roof measurement analyst reviewing a satellite image.
 
 Property address: {address}
 
-GROUND COVERAGE:
-- This image covers {img_w_ft} ft wide × {img_h_ft} ft tall ({total_area:,} sq ft total ground area)
+SCALE: This image shows {img_w_ft} ft wide × {img_h_ft} ft tall of real ground.
 
-MEASUREMENT METHOD — follow these steps:
-1. Identify the main building at the given address (ignore all neighboring structures)
-2. Estimate what percentage of the TOTAL IMAGE AREA ({total_area:,} sq ft) is occupied by that
-   building's roof footprint (the flat overhead silhouette — do not include pitch yet)
-3. Footprint sq ft = (your_percentage / 100) × {total_area:,}
-4. Apply pitch multiplier:
-   - Flat (commercial/flat roof, 0°): × 1.00
-   - Low (1–4°, slight slope): × 1.03
-   - Moderate (4–9°, typical residential): × 1.10
-   - Steep (9°+, sharp pitch): × 1.20
-5. Final sq_ft_estimate = footprint × multiplier
+INSTRUCTIONS:
+1. Find the main building at the given address — ignore all neighboring structures
+2. Estimate the roof's width and length in FEET using the scale above
+3. Flat footprint = width_ft × length_ft
+4. Apply pitch multiplier for actual sloped surface area:
+   - Flat / commercial (0°): × 1.00
+   - Low pitch (1–4°): × 1.03
+   - Moderate pitch (4–9°, typical home): × 1.10
+   - Steep pitch (9°+): × 1.20
+5. sq_ft_estimate = footprint × multiplier
 
 Respond ONLY with valid JSON:
 {{
-  "roof_pct": <number — percentage of total image area that is the target roof footprint>,
-  "sq_ft_estimate": <integer — roof surface area after pitch multiplier>,
+  "roof_width_ft": <number — estimated roof width in feet>,
+  "roof_length_ft": <number — estimated roof length in feet>,
+  "sq_ft_estimate": <integer — surface area after pitch multiplier>,
   "sq_ft_low": <integer — 8% below estimate>,
   "sq_ft_high": <integer — 8% above estimate>,
   "facets": <integer — number of distinct roof planes>,
@@ -126,7 +124,7 @@ Respond ONLY with valid JSON:
   "complexity": <"simple" | "moderate" | "complex">,
   "material_visible": <string — visible roofing material or "unknown">,
   "confidence": <"low" | "medium" | "high">,
-  "notes": <string — 1-2 sentences about the roof and what you measured>
+  "notes": <string — include your estimated width × length>
 }}
 
 Measure ONLY the main structure at the given address."""
