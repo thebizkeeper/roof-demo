@@ -99,23 +99,27 @@ def analyze_roof(lat, lng, address, material):
 
 Property address: {address}
 
-SCALE: This image shows {img_w_ft} ft wide × {img_h_ft} ft tall of real ground.
+SCALE:
+- Image size: {IMG_W_PX} × {IMG_H_PX} logical pixels
+- Ground coverage: {img_w_ft} ft wide × {img_h_ft} ft tall
+- Scale: 1 pixel = {fpp:.2f} ft
 
 INSTRUCTIONS:
 1. Find the main building at the given address — ignore all neighboring structures
-2. Estimate the roof's width and length in FEET using the scale above
-3. Flat footprint = width_ft × length_ft
-4. Apply pitch multiplier for actual sloped surface area:
-   - Flat / commercial (0°): × 1.00
-   - Low pitch (1–4°): × 1.03
-   - Moderate pitch (4–9°, typical home): × 1.10
-   - Steep pitch (9°+): × 1.20
-5. sq_ft_estimate = footprint × multiplier
+2. Estimate the roof outline in pixels (width and depth of the main structure only)
+3. Convert pixels to feet using the scale above: width_ft = pixel_width × {fpp:.2f}, etc.
+4. Flat footprint sq ft = width_ft × depth_ft
+5. Apply pitch multiplier:
+   - Flat (0°): × 1.00
+   - Low (1–4°): × 1.03
+   - Moderate (4–9°, typical home): × 1.10
+   - Steep (9°+): × 1.20
+6. sq_ft_estimate = footprint × multiplier
 
 Respond ONLY with valid JSON:
 {{
-  "roof_width_ft": <number — estimated roof width in feet>,
-  "roof_length_ft": <number — estimated roof length in feet>,
+  "roof_width_px": <integer — roof width in pixels>,
+  "roof_depth_px": <integer — roof depth in pixels>,
   "sq_ft_estimate": <integer — surface area after pitch multiplier>,
   "sq_ft_low": <integer — 8% below estimate>,
   "sq_ft_high": <integer — 8% above estimate>,
@@ -124,7 +128,7 @@ Respond ONLY with valid JSON:
   "complexity": <"simple" | "moderate" | "complex">,
   "material_visible": <string — visible roofing material or "unknown">,
   "confidence": <"low" | "medium" | "high">,
-  "notes": <string — include your estimated width × length>
+  "notes": <string — include your pixel estimates and foot conversion>
 }}
 
 Measure ONLY the main structure at the given address."""
