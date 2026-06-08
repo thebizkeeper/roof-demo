@@ -28,8 +28,8 @@ A homeowner or contractor enters an address. The app captures a satellite image 
 ## Tech Stack
 - **Backend:** Python / Flask
 - **Frontend:** Vanilla HTML/CSS/JS (`templates/index.html`)
-- **Maps:** Mapbox GL JS v3.3 + Mapbox Geocoder v5 (zoom level 20)
-- **AI Measurement:** Claude Vision API (`claude-opus-4-8`, `temperature=0`)
+- **Maps:** Mapbox GL JS v3.3 + Mapbox Geocoder v5 (zoom level 19)
+- **AI Measurement:** Claude Vision API (`claude-opus-4-8`) — no temperature param (deprecated on this model)
 - **Report Delivery:** Resend.com — sends PDF from reports@roofgridai.com
 - **PDF Generation:** ReportLab
 - **Deployment:** Railway — Gunicorn with `--timeout 120 --workers 2`
@@ -53,32 +53,57 @@ A homeowner or contractor enters an address. The app captures a satellite image 
 3. Ownership status selection
 4. Roofing material selection
 5. Scan animation → Claude Vision analyzes Mapbox satellite image
-6. Roof sq ft result displayed (real AI measurement)
+6. Roof sq ft result displayed — "Approx. X sq ft" with estimated range (low–high)
 7. Name input
 8. Email input
 9. Phone input
-→ Thank you page with cost estimate range + PDF report emailed + lead saved to Notion
+→ Thank you page with report summary checklist + PDF report emailed + lead saved to Notion
 
 ## Key Files
 - `app.py` — Flask routes: `/api/analyze` (scan step), `/api/report` (full pipeline), `/reports/<id>.pdf`
 - `ai_analyzer.py` — Claude Vision call, address-based caching, cost/timeline calculations
 - `report_generator.py` — ReportLab PDF generation
 - `notion_leads.py` — Notion daily database creation + lead saving
-- `templates/index.html` — Full frontend wizard (9 steps)
+- `templates/index.html` — Full frontend wizard (10 steps including thank you)
 - `Procfile` — `gunicorn app:app --timeout 120 --workers 2`
 
 ## AI Measurement Approach
-- Mapbox Static Images API: zoom 20 (@2x), 600×400 logical pixels
-- Ground coverage at zoom 20: ~245ft × 164ft frame
-- Claude prompt: give total ground sq ft, ask Claude what % of frame is the roof
-- `temperature=0` for consistency
-- Results cached by address string + material (30-day TTL, memory + disk)
-- Accuracy: ±10–15% from actual — acceptable for a free estimate lead tool
-- Scan result is locked per address in browser state — going Back and re-scanning reuses the same number
+- Mapbox Static Images API: **zoom 19** (@2x), 600×400 logical pixels
+- **IMPORTANT — zoom 19 is intentional.** We tested zoom 20 (tighter frame) and it caused Claude to overestimate. Zoom 19 gives more surrounding context which improves Claude's spatial calibration. Do not change back to zoom 20.
+- Image is fetched **server-side** as base64 and passed to Claude — Mapbox robots.txt blocks Claude from fetching image URLs directly
+- **Simple open-ended prompt** — no pixel math, no scale formulas. Just "estimate the roof sq ft." Claude's trained intuition on satellite imagery outperforms any manual scale calculation we've tried.
+- Results cached by address string + material (30-day TTL, in-memory + disk at `/tmp/roofgrid_cache/`)
+- Accuracy: ~±500 sq ft / ±20% — acceptable for a free estimate lead tool
+- Scan result is locked per address in browser (`scannedAddress` variable) — going Back and re-scanning reuses the cached number
 
 ## Two-Endpoint AI Flow
 - `/api/analyze` — called during scan animation, returns AI data only (no email/Notion)
 - `/api/report` — called on final submit, uses pre-computed sqft from client (never re-runs AI), generates PDF, emails report, saves Notion lead, fires internal notification
+
+## Step 6 — Measurement Display
+- Shows: "Approx. **X,XXX** square feet of roof area"
+- Shows estimated range below: "Estimated range: X,XXX – X,XXX sq ft"
+- Shows: "Includes pitch factor · Based on satellite imagery"
+
+## Thank You Page (Step 10)
+- Replaced big cost-range hero number with a "YOUR REPORT INCLUDES:" checklist:
+  - Roof measurement (sq ft)
+  - Material assessment
+  - Cost estimate range ($low – $high)
+  - Estimated timeline
+- Then shows Address and Email below
+- Cost detail is still in the PDF — the checklist format is less alarming than a standalone big dollar number
+
+## Cost Rates (per sq ft, verified accurate)
+| Material | Mat Low | Mat High | Labor Low | Labor High | Total Range |
+|---|---|---|---|---|---|
+| Asphalt Shingle | $1.50 | $2.00 | $1.00 | $1.50 | $2.50–$3.50/sq ft |
+| Metal | $5.00 | $12.00 | $3.00 | $5.00 | $8–$17/sq ft |
+| Tile | $4.00 | $8.00 | $3.00 | $6.00 | $7–$14/sq ft |
+| Wood Shake | $3.00 | $6.00 | $2.00 | $4.00 | $5–$10/sq ft |
+| Flat / TPO | $2.00 | $4.00 | $1.50 | $3.00 | $3.50–$7/sq ft |
+
+Tile is genuinely $10–20/sq ft in the real market — our rates are slightly conservative, not high.
 
 ## Notion Lead CRM
 - New database created automatically on first submission each day: "Website Leads (Month DD, YYYY)"
@@ -102,14 +127,18 @@ A homeowner or contractor enters an address. The app captures a satellite image 
 ## Known Issues / Watch List
 - **ANTHROPIC_API_KEY should be rotated** — was exposed in a chat session
 - **PDF storage is ephemeral** — `/tmp/` clears on Railway redeploys. Report links in Notion break after redeploy. Fix: migrate to Cloudflare R2 or S3 for permanent storage.
-- **AI accuracy ~±10–15%** — Claude Vision is not a certified measurement tool. For production at scale, consider EagleView API ($8–12/report) as an upgrade path.
+- **AI accuracy ~±20%** — Claude Vision is not a certified measurement tool. Acceptable for free lead-gen tier. For production Pro tier, consider EagleView API ($8–12/report) as an upgrade path.
+- **Cache clears on Railway restart** — in-memory cache (`_MEM_CACHE`) and disk cache (`/tmp/roofgrid_cache/`) both clear. First scan after restart re-runs Claude and re-populates cache.
 
 ## Build Phases
 ### Phase 1 — AI Measurement ✅ COMPLETE
-- Claude Vision satellite image analysis
+- Claude Vision satellite image analysis (zoom 19, base64, simple prompt)
 - Resend email with PDF attachment
 - Notion lead CRM with daily databases
-- Address-based measurement caching
+- Address-based measurement caching (memory + disk)
+- Scan lock (client-side `scannedAddress` prevents re-scan on Back)
+- Measurement display with "approx." and estimated range
+- Thank you page with report summary checklist
 
 ### Phase 2 — Subscription / Payments (NEXT)
 - Stripe integration for Pro plan ($49–99/mo)
