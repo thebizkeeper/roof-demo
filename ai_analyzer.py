@@ -1,5 +1,6 @@
 import os
 import json
+import math
 import requests
 import anthropic
 
@@ -17,10 +18,21 @@ MATERIAL_RATES = {
 SOUTHEAST_STATES = {"FL", "GA", "AL", "MS", "LA", "SC", "NC"}
 
 
-def get_satellite_image_url(lng, lat, zoom=19):
+ZOOM = 19
+IMG_W_PX = 600  # logical pixels (Mapbox base before @2x)
+IMG_H_PX = 400
+
+
+def _feet_per_pixel(lat):
+    """Ground distance per logical pixel at zoom 19 for a given latitude."""
+    meters = 156543.03392 * math.cos(math.radians(lat)) / (2 ** ZOOM)
+    return meters * 3.28084  # convert to feet
+
+
+def get_satellite_image_url(lng, lat, zoom=ZOOM):
     return (
         f"https://api.mapbox.com/styles/v1/mapbox/satellite-v9/static/"
-        f"{lng},{lat},{zoom},0/600x400@2x"
+        f"{lng},{lat},{zoom},0/{IMG_W_PX}x{IMG_H_PX}@2x"
         f"?access_token={MAPBOX_TOKEN}"
     )
 
@@ -30,24 +42,39 @@ def analyze_roof(lat, lng, address, material):
     client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
     image_url = get_satellite_image_url(lng, lat)
 
+    fpp = _feet_per_pixel(lat)
+    img_w_ft = round(IMG_W_PX * fpp)
+    img_h_ft = round(IMG_H_PX * fpp)
+
     prompt = f"""You are a professional roof measurement analyst reviewing a satellite image.
 
 Property address: {address}
 
-Analyze the roof visible in this satellite image and respond ONLY with valid JSON in this exact format:
+IMPORTANT SCALE INFORMATION:
+- This image is {IMG_W_PX} x {IMG_H_PX} logical pixels
+- Ground coverage: {img_w_ft} ft wide x {img_h_ft} ft tall
+- Scale: 1 pixel = {fpp:.2f} feet ({fpp/3.28084:.3f} meters)
+
+Use this scale to measure the roof accurately:
+1. Estimate the roof outline in pixels (width and depth of each section)
+2. Convert pixels to feet using the scale above
+3. Calculate the flat footprint area in sq ft
+4. Apply a pitch multiplier (low pitch: x1.05, moderate: x1.15, steep: x1.30) to get actual roof surface area
+
+Respond ONLY with valid JSON in this exact format:
 {{
-  "sq_ft_estimate": <integer — your best estimate of roof area in square feet>,
-  "sq_ft_low": <integer — conservative low end, roughly 10% below estimate>,
-  "sq_ft_high": <integer — high end, roughly 10% above estimate>,
+  "sq_ft_estimate": <integer — actual roof surface area after pitch adjustment>,
+  "sq_ft_low": <integer — 8% below estimate>,
+  "sq_ft_high": <integer — 8% above estimate>,
   "facets": <integer — number of distinct roof sections/planes>,
   "pitch": <"low" | "moderate" | "steep">,
   "complexity": <"simple" | "moderate" | "complex">,
-  "material_visible": <string — what material appears visible, or "unknown">,
+  "material_visible": <string — visible roofing material or "unknown">,
   "confidence": <"low" | "medium" | "high">,
-  "notes": <string — 1-2 sentences about the roof structure>
+  "notes": <string — 1-2 sentences about the roof>
 }}
 
-Focus only on the main structure's roof. Do not include detached garages or outbuildings unless clearly attached."""
+Measure only the main structure. Exclude detached garages and outbuildings."""
 
     response = client.messages.create(
         model="claude-opus-4-8",
