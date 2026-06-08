@@ -411,64 +411,68 @@ function initResultMap() {
 
 // ── Scanning animation ─────────────────────────────────────────────────────
 function startScan() {
+  // Already have a result for this address+material — skip straight to display
+  if (lead.sqft > 0 && scannedAddress === lead.address + '|' + lead.material) {
+    document.getElementById('sqft-display').textContent = lead.sqft.toLocaleString();
+    setTimeout(() => goStep(6), 100);
+    return;
+  }
+
   initScanMap();
   const fill = document.getElementById('prog-fill');
   const scanLabel = document.querySelector('.scan-label');
-  const checks = ['ck1','ck2','ck3'];
-  checks.forEach(id => document.getElementById(id).classList.remove('done'));
+  ['ck1','ck2','ck3'].forEach(id => document.getElementById(id).classList.remove('done'));
   fill.style.width = '0%';
+  if (scanLabel) scanLabel.textContent = 'ANALYZING SATELLITE DATA';
 
-  // If we already measured this address+material, skip the API call entirely
-  const alreadyScanned = lead.sqft > 0 && scannedAddress === (lead.address + '|' + lead.material);
-  if (alreadyScanned) {
-    analyzePromise = Promise.resolve({ ok: true, sq_ft: lead.sqft });
-  } else {
-    if (scanLabel) scanLabel.textContent = 'ANALYZING SATELLITE DATA';
-    analyzePromise = fetch('/api/analyze', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ address: lead.address, lat: lead.lat, lng: lead.lng, material: lead.material }),
-    }).then(r => r.json()).catch(() => null);
-  }
+  // Fire API call immediately
+  const apiCall = fetch('/api/analyze', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ address: lead.address, lat: lead.lat, lng: lead.lng, material: lead.material }),
+  }).then(r => r.json()).catch(() => null);
 
+  // Animate progress slowly to 85% while waiting — completes when API responds
   let pct = 0;
-  const interval = setInterval(async () => {
-    pct += 2;
-    fill.style.width = pct + '%';
-    if (pct === 30) document.getElementById('ck1').classList.add('done');
-    if (pct === 60) document.getElementById('ck2').classList.add('done');
-    if (pct === 90) document.getElementById('ck3').classList.add('done');
-    if (pct >= 100) {
-      clearInterval(interval);
-      if (scanLabel) scanLabel.textContent = 'PROCESSING RESULTS…';
-
-      const aiData = await analyzePromise;
-      if (aiData && aiData.ok) {
-        lead.sqft            = aiData.sq_ft;
-        lead.sqft_low        = aiData.sq_ft_low;
-        lead.sqft_high       = aiData.sq_ft_high;
-        lead.facets          = aiData.facets;
-        lead.pitch           = aiData.pitch;
-        lead.complexity      = aiData.complexity;
-        lead.cost_mat_low    = aiData.cost_mat_low;
-        lead.cost_mat_high   = aiData.cost_mat_high;
-        lead.cost_labor_low  = aiData.cost_labor_low;
-        lead.cost_labor_high = aiData.cost_labor_high;
-        lead.cost_total_low  = aiData.cost_total_low;
-        lead.cost_total_high = aiData.cost_total_high;
-        lead.timeline        = aiData.timeline;
-        scannedAddress = lead.address + '|' + lead.material;
-        document.getElementById('sqft-display').textContent = lead.sqft.toLocaleString();
-        setTimeout(() => goStep(6), 600);
-      } else {
-        // API failed — show error and let user retry, never show a fake number
-        if (scanLabel) scanLabel.textContent = 'ANALYSIS FAILED — TAP TO RETRY';
-        fill.style.background = '#ef4444';
-        fill.style.width = '100%';
-        setTimeout(() => goStep(5), 2000);
-      }
+  const interval = setInterval(() => {
+    if (pct < 85) {
+      pct = Math.min(pct + 0.4, 85);
+      fill.style.width = pct + '%';
+      if (pct >= 28) document.getElementById('ck1').classList.add('done');
+      if (pct >= 56) document.getElementById('ck2').classList.add('done');
     }
-  }, 50);
+  }, 100);
+
+  // When API responds, snap to 100% and proceed
+  apiCall.then(aiData => {
+    clearInterval(interval);
+    document.getElementById('ck3').classList.add('done');
+    fill.style.width = '100%';
+
+    if (aiData && aiData.ok) {
+      lead.sqft            = aiData.sq_ft;
+      lead.sqft_low        = aiData.sq_ft_low;
+      lead.sqft_high       = aiData.sq_ft_high;
+      lead.facets          = aiData.facets;
+      lead.pitch           = aiData.pitch;
+      lead.complexity      = aiData.complexity;
+      lead.cost_mat_low    = aiData.cost_mat_low;
+      lead.cost_mat_high   = aiData.cost_mat_high;
+      lead.cost_labor_low  = aiData.cost_labor_low;
+      lead.cost_labor_high = aiData.cost_labor_high;
+      lead.cost_total_low  = aiData.cost_total_low;
+      lead.cost_total_high = aiData.cost_total_high;
+      lead.timeline        = aiData.timeline;
+      scannedAddress       = lead.address + '|' + lead.material;
+      if (scanLabel) scanLabel.textContent = 'ANALYSIS COMPLETE';
+      document.getElementById('sqft-display').textContent = lead.sqft.toLocaleString();
+      setTimeout(() => goStep(6), 600);
+    } else {
+      // Show error — do NOT call goStep(5), that would re-trigger startScan
+      fill.style.background = '#ef4444';
+      if (scanLabel) scanLabel.textContent = 'ANALYSIS FAILED — PLEASE GO BACK AND TRY AGAIN';
+    }
+  });
 }
 
 // ── Radio / Material selection ─────────────────────────────────────────────
