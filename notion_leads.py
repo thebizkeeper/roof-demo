@@ -60,6 +60,7 @@ def get_or_create_daily_database():
                 "Cost Estimate": {"rich_text": {}},
                 "Source":        {"select": {}},
                 "Date":          {"date": {}},
+                "Report":        {"url": {}},
             },
         },
         timeout=10,
