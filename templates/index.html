@@ -113,9 +113,13 @@
     .ty-icon{width:64px;height:64px;background:linear-gradient(135deg,#10b981,#059669);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2rem;margin:0 auto 16px}
     .ty-title{font-size:1.4rem;font-weight:800;color:#0f172a;text-align:center;margin-bottom:8px}
     .ty-sub{font-size:.84rem;color:#64748b;text-align:center;line-height:1.6;margin-bottom:20px}
-    .estimate-box{background:#f0fdf4;border:1.5px solid #10b981;border-radius:10px;padding:16px;text-align:center;margin-bottom:16px}
-    .estimate-range{font-size:1.7rem;font-weight:900;color:#059669}
-    .estimate-label{font-size:.75rem;color:#16a34a;margin-top:2px}
+    .report-summary{background:#f0fdf4;border:1.5px solid #10b981;border-radius:10px;padding:16px;margin-bottom:16px}
+    .report-summary-title{font-size:.75rem;font-weight:700;color:#059669;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+    .report-summary-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #d1fae5}
+    .report-summary-row:last-child{border:none}
+    .report-check{color:#10b981;font-weight:700;font-size:.9rem;flex-shrink:0}
+    .report-item-label{font-size:.8rem;color:#374151;flex:1}
+    .report-item-val{font-size:.8rem;font-weight:700;color:#0f172a;text-align:right}
     .detail-row{display:flex;justify-content:space-between;font-size:.78rem;color:#64748b;padding:5px 0;border-bottom:1px solid #f1f5f9}
     .detail-row:last-child{border:none}
     .detail-val{font-weight:600;color:#1e293b}
@@ -292,10 +296,7 @@
       <div class="ty-icon">✓</div>
       <div class="ty-title">You're All Set!</div>
       <div class="ty-sub">Your AI roof report is being emailed to you now. Check your inbox — it includes your full measurement, cost estimate, and timeline.</div>
-      <div class="estimate-box">
-        <div class="estimate-range" id="cost-range">—</div>
-        <div class="estimate-label">Estimated Project Cost Range</div>
-      </div>
+      <div class="report-summary" id="report-summary"></div>
       <div id="detail-rows"></div>
       <button class="btn-back" style="margin-top:20px;font-size:.85rem" onclick="startOver()">↩ Start Over</button>
     </div>
@@ -537,19 +538,22 @@ async function submitLead() {
 }
 
 function showThankYou() {
-  const lo = lead.cost_total_low;
-  const hi = lead.cost_total_high;
-  document.getElementById('cost-range').textContent =
-    lo && hi ? `$${lo.toLocaleString()} – $${hi.toLocaleString()}` : '—';
-
   const timeline = lead.timeline ? lead.timeline.range : 'N/A';
+  const items = [
+    ['Roof measurement', (lead.sqft || 0).toLocaleString() + ' sq ft'],
+    ['Material assessment', lead.material],
+    ['Cost estimate range', `$${(lead.cost_total_low||0).toLocaleString()} – $${(lead.cost_total_high||0).toLocaleString()}`],
+    ['Estimated timeline', timeline],
+  ];
+  document.getElementById('report-summary').innerHTML =
+    `<div class="report-summary-title">Your report includes:</div>` +
+    items.map(([k,v]) =>
+      `<div class="report-summary-row"><span class="report-check">✓</span><span class="report-item-label">${k}</span><span class="report-item-val">${v}</span></div>`
+    ).join('');
 
   const rows = [
-    ['Address',   lead.address],
-    ['Roof Area', (lead.sqft || 0).toLocaleString() + ' sq ft'],
-    ['Material',  lead.material],
-    ['Timeline',  timeline],
-    ['Email',     lead.email],
+    ['Address', lead.address],
+    ['Email',   lead.email],
   ];
   document.getElementById('detail-rows').innerHTML = rows.map(([k,v]) =>
     `<div class="detail-row"><span>${k}</span><span class="detail-val">${v}</span></div>`
