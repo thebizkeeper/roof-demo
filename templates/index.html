@@ -468,9 +468,9 @@ function startScan() {
       document.getElementById('sqft-display').textContent = lead.sqft.toLocaleString();
       setTimeout(() => goStep(6), 600);
     } else {
-      // Show error — do NOT call goStep(5), that would re-trigger startScan
       fill.style.background = '#ef4444';
-      if (scanLabel) scanLabel.textContent = 'ANALYSIS FAILED — PLEASE GO BACK AND TRY AGAIN';
+      const errDetail = (aiData && aiData.error) ? aiData.error : 'no response from server';
+      if (scanLabel) scanLabel.textContent = 'ERROR: ' + errDetail;
     }
   });
 }
