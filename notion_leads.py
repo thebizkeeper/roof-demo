@@ -115,6 +115,7 @@ def save_lead(data, report_id):
                     "Cost Estimate": {"rich_text":     [{"text": {"content": cost_range}}]},
                     "Source":        {"select":        {"name": data.get("source", "Free Report")}},
                     "Date":          {"date":          {"start": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")}},
+                    "Report":        {"url":           data.get("report_url") or None},
                 },
             },
             timeout=10,

@@ -23,6 +23,10 @@ NOTIFY_EMAIL       = os.environ.get("NOTIFY_EMAIL", "sam@thebizkeeper.com")
 RESEND_API_KEY     = os.environ.get("RESEND_API_KEY", "")
 SHEETS_ID          = os.environ.get("GOOGLE_SHEETS_ID", "")
 SERVICE_ACCOUNT_JSON = os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON", "")
+APP_URL            = os.environ.get("APP_URL", "https://www.roofgridai.com")
+
+REPORTS_DIR = "/tmp/roofgrid_reports"
+os.makedirs(REPORTS_DIR, exist_ok=True)
 
 resend.api_key = RESEND_API_KEY
 
@@ -149,6 +153,16 @@ def index():
     return render_template("index.html", mapbox_token=MAPBOX_TOKEN)
 
 
+@app.route("/reports/<report_id>.pdf")
+def serve_report(report_id):
+    from flask import send_file
+    path = os.path.join(REPORTS_DIR, f"{report_id}.pdf")
+    if os.path.exists(path):
+        return send_file(path, mimetype="application/pdf",
+                         download_name=f"RoofGrid-{report_id}.pdf", as_attachment=False)
+    return "Report not found", 404
+
+
 @app.route("/api/analyze", methods=["POST"])
 def analyze_only():
     """Lightweight endpoint: runs AI analysis only, no email or Notion. Called during scan animation."""
@@ -234,11 +248,19 @@ def create_report():
     print(f"=== NEW REPORT {report_id} === {name} | {address}")
 
     # Generate PDF
+    pdf_bytes = None
+    report_url = ""
     try:
         pdf_bytes = generate_pdf_report(full_data, report_id)
+        pdf_path = os.path.join(REPORTS_DIR, f"{report_id}.pdf")
+        with open(pdf_path, "wb") as f:
+            f.write(pdf_bytes)
+        report_url = f"{APP_URL}/reports/{report_id}.pdf"
+        print(f"PDF saved: {pdf_path}")
     except Exception as e:
         print(f"PDF generation error: {e}")
-        pdf_bytes = None
+
+    full_data["report_url"] = report_url
 
     # Fire all delivery tasks in background threads so response is fast
     if pdf_bytes and email:
