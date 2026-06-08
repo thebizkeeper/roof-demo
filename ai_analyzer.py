@@ -18,17 +18,15 @@ MATERIAL_RATES = {
 SOUTHEAST_STATES = {"FL", "GA", "AL", "MS", "LA", "SC", "NC"}
 
 
-ZOOM = 19
+ZOOM = 20       # zoom 20 ≈ 245ft×164ft frame — building fills ~5-15% vs ~1-2% at zoom 19
 IMG_W_PX = 600  # logical pixels (Mapbox base)
 IMG_H_PX = 400
-RETINA = 2      # @2x doubles actual pixel count
 
 
-def _feet_per_pixel(lat):
-    """Ground distance per actual pixel in the @2x image."""
+def _logical_fpp(lat):
+    """Ground distance per logical pixel at the configured zoom."""
     meters = 156543.03392 * math.cos(math.radians(lat)) / (2 ** ZOOM)
-    feet_per_logical = meters * 3.28084
-    return feet_per_logical / RETINA  # @2x image has 2× pixels per foot
+    return meters * 3.28084
 
 
 def get_satellite_image_url(lng, lat, zoom=ZOOM):
@@ -44,41 +42,45 @@ def analyze_roof(lat, lng, address, material):
     client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
     image_url = get_satellite_image_url(lng, lat)
 
-    fpp = _feet_per_pixel(lat)
-    actual_w = IMG_W_PX * RETINA   # 1200
-    actual_h = IMG_H_PX * RETINA   # 800
-    img_w_ft = round(actual_w * fpp)
-    img_h_ft = round(actual_h * fpp)
+    fpp = _logical_fpp(lat)
+    img_w_ft = round(IMG_W_PX * fpp)
+    img_h_ft = round(IMG_H_PX * fpp)
+    total_area = img_w_ft * img_h_ft
 
     prompt = f"""You are a professional roof measurement analyst reviewing a satellite image.
 
 Property address: {address}
 
-IMPORTANT SCALE INFORMATION:
-- This image is {actual_w} x {actual_h} pixels (actual pixel dimensions)
-- Ground coverage: {img_w_ft} ft wide x {img_h_ft} ft tall
-- Scale: 1 pixel = {fpp:.2f} feet ({fpp/3.28084:.3f} meters)
+GROUND COVERAGE:
+- This image covers {img_w_ft} ft wide × {img_h_ft} ft tall ({total_area:,} sq ft total ground area)
 
-Use this scale to measure the roof accurately:
-1. Estimate the roof outline in pixels (width and depth of each section)
-2. Convert pixels to feet using the scale above
-3. Calculate the flat footprint area in sq ft
-4. Apply a pitch multiplier (low pitch: x1.05, moderate: x1.15, steep: x1.30) to get actual roof surface area
+MEASUREMENT METHOD — follow these steps:
+1. Identify the main building at the given address (ignore all neighboring structures)
+2. Estimate what percentage of the TOTAL IMAGE AREA ({total_area:,} sq ft) is occupied by that
+   building's roof footprint (the flat overhead silhouette — do not include pitch yet)
+3. Footprint sq ft = (your_percentage / 100) × {total_area:,}
+4. Apply pitch multiplier:
+   - Flat (commercial/flat roof, 0°): × 1.00
+   - Low (1–4°, slight slope): × 1.03
+   - Moderate (4–9°, typical residential): × 1.10
+   - Steep (9°+, sharp pitch): × 1.20
+5. Final sq_ft_estimate = footprint × multiplier
 
-Respond ONLY with valid JSON in this exact format:
+Respond ONLY with valid JSON:
 {{
-  "sq_ft_estimate": <integer — actual roof surface area after pitch adjustment>,
+  "roof_pct": <number — percentage of total image area that is the target roof footprint>,
+  "sq_ft_estimate": <integer — roof surface area after pitch multiplier>,
   "sq_ft_low": <integer — 8% below estimate>,
   "sq_ft_high": <integer — 8% above estimate>,
-  "facets": <integer — number of distinct roof sections/planes>,
-  "pitch": <"low" | "moderate" | "steep">,
+  "facets": <integer — number of distinct roof planes>,
+  "pitch": <"flat" | "low" | "moderate" | "steep">,
   "complexity": <"simple" | "moderate" | "complex">,
   "material_visible": <string — visible roofing material or "unknown">,
   "confidence": <"low" | "medium" | "high">,
-  "notes": <string — 1-2 sentences about the roof>
+  "notes": <string — 1-2 sentences about the roof and what you measured>
 }}
 
-Measure only the main structure. Exclude detached garages and outbuildings."""
+Measure ONLY the main structure at the given address."""
 
     response = client.messages.create(
         model="claude-opus-4-8",
@@ -98,28 +100,28 @@ Measure only the main structure. Exclude detached garages and outbuildings."""
     )
 
     raw = response.content[0].text.strip()
-    # Strip markdown code fences if present
     if raw.startswith("```"):
         raw = raw.split("```")[1]
         if raw.startswith("json"):
             raw = raw[4:]
     ai = json.loads(raw.strip())
 
-    sq_ft = ai.get("sq_ft_estimate", 2500)
-    complexity = ai.get("complexity", "moderate")
+    sq_ft = ai.get("sq_ft_estimate") or 2500
+    complexity = ai.get("complexity") or "moderate"
+    pitch = ai.get("pitch") or "moderate"
     costs = calculate_costs(sq_ft, material)
     timeline = calculate_timeline(sq_ft, complexity, address)
 
     return {
         "sq_ft": sq_ft,
-        "sq_ft_low": ai.get("sq_ft_low", int(sq_ft * 0.9)),
-        "sq_ft_high": ai.get("sq_ft_high", int(sq_ft * 1.1)),
-        "facets": ai.get("facets", 4),
-        "pitch": ai.get("pitch", "moderate"),
+        "sq_ft_low": ai.get("sq_ft_low") or int(sq_ft * 0.92),
+        "sq_ft_high": ai.get("sq_ft_high") or int(sq_ft * 1.08),
+        "facets": ai.get("facets") or 4,
+        "pitch": pitch,
         "complexity": complexity.capitalize(),
-        "material_visible": ai.get("material_visible", "unknown"),
-        "confidence": ai.get("confidence", "medium"),
-        "notes": ai.get("notes", ""),
+        "material_visible": ai.get("material_visible") or "unknown",
+        "confidence": ai.get("confidence") or "medium",
+        "notes": ai.get("notes") or "",
         "satellite_image_url": image_url,
         **costs,
         "timeline": timeline,
