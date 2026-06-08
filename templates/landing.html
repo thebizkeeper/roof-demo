@@ -13,7 +13,9 @@
   <link rel="canonical" href="https://www.roofgridai.com"/>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:#0f172a;background:#fff;overflow-x:clip}
+    html,body{overflow-x:hidden}
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:#0f172a;background:#fff}
+    .page-wrap{overflow-x:clip;position:relative}
 
     /* ── NAV ── */
     nav{position:fixed;top:0;left:0;right:0;z-index:100;background:transparent;height:72px;display:flex;align-items:center;padding:0 48px}
@@ -115,13 +117,14 @@
 </head>
 <body>
 
-<!-- NAV -->
+<!-- NAV — fixed, outside page-wrap so overflow never affects it -->
 <nav>
   <div class="nav-logo">
     <img src="/static/roofgrid-logo.png" alt="RoofGrid AI"/>
   </div>
 </nav>
 
+<div class="page-wrap">
 <!-- HERO -->
 <section class="hero">
   <div class="hero-left">
@@ -258,11 +261,12 @@
 </div>
 
 <!-- FOOTER -->
-<footer>
+<footer style="position:relative;z-index:1">
   <img src="/static/roofgrid-logo.png" alt="RoofGrid AI"/>
   <p>© 2025 RoofGrid AI · <a href="mailto:reports@roofgridai.com">reports@roofgridai.com</a></p>
   <p class="footer-disclaimer">AI-generated estimates are for informational purposes only. For certified measurements, consult a licensed roofing contractor.</p>
 </footer>
+</div><!-- end page-wrap -->
 
 </body>
 </html>
