@@ -72,19 +72,6 @@ def get_or_create_daily_database():
     return data["id"]
 
 
-def is_duplicate(database_id, email):
-    """Return True if this email already has an entry in today's database."""
-    if not email:
-        return False
-    resp = requests.post(
-        f"{NOTION_API}/databases/{database_id}/query",
-        headers=_headers(),
-        json={"filter": {"property": "Email", "email": {"equals": email}}},
-        timeout=10,
-    )
-    return len(resp.json().get("results", [])) > 0
-
-
 def save_lead(data, report_id):
     if not NOTION_TOKEN or not NOTION_PARENT_PAGE_ID:
         print("Notion not configured — skipping lead save")
@@ -92,11 +79,6 @@ def save_lead(data, report_id):
 
     try:
         db_id = get_or_create_daily_database()
-
-        email = data.get("email", "")
-        if is_duplicate(db_id, email):
-            print(f"Duplicate lead skipped: {email}")
-            return
 
         total_low  = data.get("cost_total_low",  0)
         total_high = data.get("cost_total_high", 0)

@@ -1,6 +1,8 @@
 import os
 import json
 import math
+import time as _time
+import hashlib
 import requests
 import anthropic
 
@@ -16,6 +18,34 @@ MATERIAL_RATES = {
 }
 
 SOUTHEAST_STATES = {"FL", "GA", "AL", "MS", "LA", "SC", "NC"}
+
+CACHE_DIR = "/tmp/roofgrid_cache"
+CACHE_TTL = 30 * 24 * 3600  # 30 days
+
+
+def _cache_path(lat, lng, material):
+    key = f"{round(lat, 4)},{round(lng, 4)},{material}"
+    return os.path.join(CACHE_DIR, hashlib.md5(key.encode()).hexdigest() + ".json")
+
+
+def _read_cache(lat, lng, material):
+    try:
+        with open(_cache_path(lat, lng, material)) as f:
+            data = json.load(f)
+        if _time.time() - data.pop("_ts", 0) < CACHE_TTL:
+            return data
+    except Exception:
+        pass
+    return None
+
+
+def _write_cache(lat, lng, material, result):
+    os.makedirs(CACHE_DIR, exist_ok=True)
+    try:
+        with open(_cache_path(lat, lng, material), "w") as f:
+            json.dump({**result, "_ts": _time.time()}, f)
+    except Exception:
+        pass
 
 
 ZOOM = 20       # zoom 20 ≈ 245ft×164ft frame — building fills ~5-15% vs ~1-2% at zoom 19
@@ -39,6 +69,13 @@ def get_satellite_image_url(lng, lat, zoom=ZOOM):
 
 def analyze_roof(lat, lng, address, material):
     """Send satellite image to Claude Vision and return structured roof data."""
+    # Return cached result so the same address always gives the same number
+    cached = _read_cache(lat, lng, material)
+    if cached:
+        cached["satellite_image_url"] = get_satellite_image_url(lng, lat)
+        print(f"Cache hit: {address}")
+        return cached
+
     client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
     image_url = get_satellite_image_url(lng, lat)
 
@@ -85,6 +122,7 @@ Measure ONLY the main structure at the given address."""
     response = client.messages.create(
         model="claude-opus-4-8",
         max_tokens=512,
+        temperature=0,  # deterministic — reduces variance on first call
         messages=[
             {
                 "role": "user",
@@ -112,7 +150,7 @@ Measure ONLY the main structure at the given address."""
     costs = calculate_costs(sq_ft, material)
     timeline = calculate_timeline(sq_ft, complexity, address)
 
-    return {
+    result = {
         "sq_ft": sq_ft,
         "sq_ft_low": ai.get("sq_ft_low") or int(sq_ft * 0.92),
         "sq_ft_high": ai.get("sq_ft_high") or int(sq_ft * 1.08),
@@ -126,6 +164,8 @@ Measure ONLY the main structure at the given address."""
         **costs,
         "timeline": timeline,
     }
+    _write_cache(lat, lng, material, result)
+    return result
 
 
 def calculate_costs(sq_ft, material):
