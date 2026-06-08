@@ -20,8 +20,8 @@
     .nav-logo img{height:58px;width:auto}
 
     /* ── HERO ── */
-    .hero{min-height:100vh;background:linear-gradient(135deg,#ffffff 0%,#f0f7ff 35%,#dbeafe 65%,#1e3a8a 100%);display:flex;align-items:center;padding:100px 48px 60px;gap:48px}
-    .hero-left{flex:1;max-width:560px}
+    .hero{position:relative;overflow:hidden;min-height:100vh;background:linear-gradient(to right,#ffffff 0%,#f0f7ff 28%,#dbeafe 50%,#1e3a8a 100%);display:flex;align-items:center;padding:100px 48px 60px}
+    .hero-left{flex:0 0 auto;width:48%;position:relative;z-index:2}
     .hero h1{font-size:3.2rem;font-weight:900;color:#0f172a;line-height:1.12;margin-bottom:20px}
     .hero h1 .blue{color:#1a56db}
     .hero-sub{font-size:1rem;color:#475569;line-height:1.7;margin-bottom:8px}
@@ -31,12 +31,13 @@
     .btn-hero:hover{background:#1d4ed8;transform:translateY(-2px)}
     .stars{display:flex;align-items:center;gap:8px;margin-top:18px}
     .star-icons{color:#f59e0b;font-size:1.1rem;letter-spacing:1px}
-    .stars-text{font-size:.85rem;color:#374151}<br>    .stars-text strong{color:#0f172a}
+    .stars-text{font-size:.85rem;color:#374151}
+    .stars-text strong{color:#0f172a}
 
-    .hero-right{flex:1;max-width:540px;position:relative;display:flex;align-items:flex-end;justify-content:flex-end}
-    .hero-img-wrap{width:100%;border-radius:16px;overflow:visible;position:relative}
-    .hero-img-wrap img{width:100%;height:380px;object-fit:cover;border-radius:16px;display:block}
-    .report-card{position:absolute;bottom:-16px;right:-8px;background:#fff;border-radius:14px;padding:18px 22px;box-shadow:0 16px 48px rgba(0,0,0,.18);min-width:230px}
+    .hero-right{position:absolute;top:0;right:0;width:58%;height:100%;z-index:1}
+    .hero-img-wrap{position:absolute;inset:0}
+    .hero-img-wrap img{width:100%;height:100%;object-fit:cover;display:block;-webkit-mask-image:linear-gradient(to right,transparent 0%,rgba(0,0,0,.6) 18%,black 40%);mask-image:linear-gradient(to right,transparent 0%,rgba(0,0,0,.6) 18%,black 40%)}
+    .report-card{position:absolute;bottom:60px;right:40px;background:#fff;border-radius:14px;padding:18px 22px;box-shadow:0 16px 48px rgba(0,0,0,.22);min-width:230px;z-index:3}
     .rc-title{font-size:.68rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px}
     .rc-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px}
     .rc-label{font-size:.78rem;color:#64748b}
@@ -96,10 +97,12 @@
     /* ── RESPONSIVE ── */
     @media(max-width:900px){
       nav{padding:0 24px}
-      .hero{flex-direction:column;padding:100px 24px 60px;text-align:center}
+      .hero{padding:100px 24px 340px;background:linear-gradient(to bottom,#ffffff 0%,#dbeafe 60%,#1e3a8a 100%)}
+      .hero-left{width:100%;text-align:center}
       .hero h1{font-size:2.2rem}
-      .hero-right{width:100%}
-      .report-card{right:0}
+      .hero-right{width:100%;top:auto;bottom:0;height:320px}
+      .hero-img-wrap img{-webkit-mask-image:linear-gradient(to bottom,transparent 0%,black 30%);mask-image:linear-gradient(to bottom,transparent 0%,black 30%)}
+      .report-card{bottom:16px;right:12px;left:12px;min-width:unset}
       .section-wrap{padding:60px 24px}
       .why-bg{padding:60px 0}
       .faq-wrap{padding:60px 24px}
