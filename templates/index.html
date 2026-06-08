@@ -319,6 +319,7 @@ const lead = {
 let currentStep = 1;
 let map, marker, scanMapObj, resultMapObj;
 let analyzePromise = null;
+let scannedAddress = '';   // tracks which address the current sqft result belongs to
 const TOTAL_STEPS = 9;
 
 // ── Step indicator ─────────────────────────────────────────────────────────
@@ -414,18 +415,23 @@ function startScan() {
   const fill = document.getElementById('prog-fill');
   const scanLabel = document.querySelector('.scan-label');
   const checks = ['ck1','ck2','ck3'];
-  let pct = 0;
   checks.forEach(id => document.getElementById(id).classList.remove('done'));
   fill.style.width = '0%';
-  if (scanLabel) scanLabel.textContent = 'ANALYZING SATELLITE DATA';
 
-  // Fire AI analysis in parallel with animation
-  analyzePromise = fetch('/api/analyze', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ address: lead.address, lat: lead.lat, lng: lead.lng, material: lead.material }),
-  }).then(r => r.json()).catch(() => null);
+  // If we already measured this address+material, skip the API call entirely
+  const alreadyScanned = lead.sqft > 0 && scannedAddress === (lead.address + '|' + lead.material);
+  if (alreadyScanned) {
+    analyzePromise = Promise.resolve({ ok: true, sq_ft: lead.sqft });
+  } else {
+    if (scanLabel) scanLabel.textContent = 'ANALYZING SATELLITE DATA';
+    analyzePromise = fetch('/api/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ address: lead.address, lat: lead.lat, lng: lead.lng, material: lead.material }),
+    }).then(r => r.json()).catch(() => null);
+  }
 
+  let pct = 0;
   const interval = setInterval(async () => {
     pct += 2;
     fill.style.width = pct + '%';
@@ -438,25 +444,29 @@ function startScan() {
 
       const aiData = await analyzePromise;
       if (aiData && aiData.ok) {
-        lead.sqft          = aiData.sq_ft;
-        lead.sqft_low      = aiData.sq_ft_low;
-        lead.sqft_high     = aiData.sq_ft_high;
-        lead.facets        = aiData.facets;
-        lead.pitch         = aiData.pitch;
-        lead.complexity    = aiData.complexity;
-        lead.cost_mat_low  = aiData.cost_mat_low;
-        lead.cost_mat_high = aiData.cost_mat_high;
+        lead.sqft            = aiData.sq_ft;
+        lead.sqft_low        = aiData.sq_ft_low;
+        lead.sqft_high       = aiData.sq_ft_high;
+        lead.facets          = aiData.facets;
+        lead.pitch           = aiData.pitch;
+        lead.complexity      = aiData.complexity;
+        lead.cost_mat_low    = aiData.cost_mat_low;
+        lead.cost_mat_high   = aiData.cost_mat_high;
         lead.cost_labor_low  = aiData.cost_labor_low;
         lead.cost_labor_high = aiData.cost_labor_high;
         lead.cost_total_low  = aiData.cost_total_low;
         lead.cost_total_high = aiData.cost_total_high;
-        lead.timeline      = aiData.timeline;
+        lead.timeline        = aiData.timeline;
+        scannedAddress = lead.address + '|' + lead.material;
+        document.getElementById('sqft-display').textContent = lead.sqft.toLocaleString();
+        setTimeout(() => goStep(6), 600);
       } else {
-        lead.sqft = Math.floor(Math.random() * 1200 + 2200);
+        // API failed — show error and let user retry, never show a fake number
+        if (scanLabel) scanLabel.textContent = 'ANALYSIS FAILED — TAP TO RETRY';
+        fill.style.background = '#ef4444';
+        fill.style.width = '100%';
+        setTimeout(() => goStep(5), 2000);
       }
-
-      document.getElementById('sqft-display').textContent = lead.sqft.toLocaleString();
-      setTimeout(() => goStep(6), 600);
     }
   }, 50);
 }
@@ -543,6 +553,7 @@ function showThankYou() {
 
 // ── Start Over ─────────────────────────────────────────────────────────────
 function startOver() {
+  scannedAddress = '';
   Object.assign(lead, { address:'', lat:0, lng:0, ownership:'', material:'', sqft:0, name:'', email:'', phone:'' });
   map = null; marker = null; scanMapObj = null; resultMapObj = null;
   document.getElementById('s10').classList.remove('active');
