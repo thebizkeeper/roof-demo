@@ -253,7 +253,8 @@
       <div class="measurement-display">
         <div class="measurement-num" id="sqft-display">—</div>
         <div class="measurement-unit">square feet of roof area</div>
-        <div class="measurement-note">Includes pitch factor · Based on satellite imagery</div>
+        <div class="measurement-note">Estimated range: <span id="sqft-range">—</span> sq ft</div>
+        <div class="measurement-note" style="margin-top:4px">Includes pitch factor · Based on satellite imagery</div>
       </div>
       <button class="btn-next btn-cta" onclick="goStep(7)">Calculate My Costs →</button>
       <button class="btn-back" onclick="goStep(4)">← Back</button>
@@ -414,6 +415,7 @@ function startScan() {
   // Already have a result for this address+material — skip straight to display
   if (lead.sqft > 0 && scannedAddress === lead.address + '|' + lead.material) {
     document.getElementById('sqft-display').textContent = lead.sqft.toLocaleString();
+    document.getElementById('sqft-range').textContent = lead.sqft_low.toLocaleString() + ' – ' + lead.sqft_high.toLocaleString();
     setTimeout(() => goStep(6), 100);
     return;
   }
@@ -466,6 +468,7 @@ function startScan() {
       scannedAddress       = lead.address + '|' + lead.material;
       if (scanLabel) scanLabel.textContent = 'ANALYSIS COMPLETE';
       document.getElementById('sqft-display').textContent = lead.sqft.toLocaleString();
+      document.getElementById('sqft-range').textContent = lead.sqft_low.toLocaleString() + ' – ' + lead.sqft_high.toLocaleString();
       setTimeout(() => goStep(6), 600);
     } else {
       fill.style.background = '#ef4444';
