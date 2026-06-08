@@ -13,245 +13,253 @@
   <link rel="canonical" href="https://www.roofgridai.com"/>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:#0f172a;background:#fff}
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:#0f172a;background:#fff;overflow-x:hidden}
 
     /* ── NAV ── */
-    nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,.95);backdrop-filter:blur(8px);border-bottom:1px solid #e2e8f0;height:68px;display:flex;align-items:center;justify-content:space-between;padding:0 40px}
-    .nav-logo img{height:52px;width:auto}
-    .nav-cta{background:#1a56db;color:#fff;border:none;padding:10px 22px;border-radius:8px;font-size:.9rem;font-weight:600;cursor:pointer;text-decoration:none;transition:background .2s}
-    .nav-cta:hover{background:#1e40af}
+    nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,.96);backdrop-filter:blur(8px);border-bottom:1px solid #e2e8f0;height:72px;display:flex;align-items:center;padding:0 48px}
+    .nav-logo img{height:58px;width:auto}
 
     /* ── HERO ── */
-    .hero{min-height:100vh;background:linear-gradient(135deg,#0f172a 0%,#1e3a8a 50%,#1a56db 100%);display:flex;align-items:center;padding:100px 40px 60px;gap:60px}
+    .hero{min-height:100vh;background:linear-gradient(135deg,#ffffff 0%,#f0f7ff 35%,#dbeafe 65%,#1e3a8a 100%);display:flex;align-items:center;padding:100px 48px 60px;gap:48px}
     .hero-left{flex:1;max-width:560px}
-    .hero-badge{display:inline-block;background:rgba(255,255,255,.12);color:#93c5fd;font-size:.78rem;font-weight:600;padding:6px 14px;border-radius:20px;margin-bottom:24px;letter-spacing:.04em;text-transform:uppercase}
-    .hero h1{font-size:3rem;font-weight:900;color:#fff;line-height:1.15;margin-bottom:20px}
-    .hero h1 span{color:#60a5fa}
-    .hero-sub{font-size:1.1rem;color:#94a3b8;line-height:1.7;margin-bottom:32px}
-    .hero-sub strong{color:#e2e8f0}
-    .btn-hero{display:inline-block;background:#1a56db;color:#fff;padding:16px 36px;border-radius:10px;font-size:1.05rem;font-weight:700;text-decoration:none;transition:all .2s;box-shadow:0 4px 24px rgba(26,86,219,.4)}
-    .btn-hero:hover{background:#1d4ed8;transform:translateY(-2px);box-shadow:0 8px 32px rgba(26,86,219,.5)}
-    .hero-trust{margin-top:20px;font-size:.85rem;color:#64748b;display:flex;align-items:center;gap:8px}
-    .hero-trust span{color:#10b981;font-weight:600}
+    .hero h1{font-size:3.2rem;font-weight:900;color:#0f172a;line-height:1.12;margin-bottom:20px}
+    .hero h1 .blue{color:#1a56db}
+    .hero-sub{font-size:1rem;color:#475569;line-height:1.7;margin-bottom:8px}
+    .hero-sub strong{color:#0f172a}
+    .hero-nocredit{font-size:.95rem;color:#0f172a;font-weight:600;margin-bottom:28px}
+    .btn-hero{display:inline-block;background:#1a56db;color:#fff;padding:15px 32px;border-radius:8px;font-size:1rem;font-weight:700;text-decoration:none;transition:all .2s;box-shadow:0 4px 18px rgba(26,86,219,.35)}
+    .btn-hero:hover{background:#1d4ed8;transform:translateY(-2px)}
+    .stars{display:flex;align-items:center;gap:8px;margin-top:18px}
+    .star-icons{color:#f59e0b;font-size:1.1rem;letter-spacing:1px}
+    .stars-text{font-size:.85rem;color:#374151}<br>    .stars-text strong{color:#0f172a}
 
-    .hero-right{flex:1;max-width:520px;display:flex;justify-content:center;align-items:center;position:relative}
-    .hero-house{width:100%;border-radius:16px;overflow:hidden;position:relative}
-    .hero-house img{width:100%;height:360px;object-fit:cover;border-radius:16px;filter:brightness(.85)}
-    .report-card{position:absolute;bottom:-20px;right:-10px;background:#fff;border-radius:14px;padding:20px 24px;box-shadow:0 20px 60px rgba(0,0,0,.3);min-width:220px}
-    .report-card-title{font-size:.7rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px}
-    .report-card-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-    .report-card-label{font-size:.78rem;color:#64748b}
-    .report-card-val{font-size:.9rem;font-weight:700;color:#0f172a}
-    .report-card-val.green{color:#059669}
-    .report-card-val.blue{color:#1a56db;font-size:1rem}
-    .report-card-btn{display:flex;align-items:center;gap:6px;margin-top:12px;padding-top:12px;border-top:1px solid #f1f5f9;font-size:.78rem;font-weight:600;color:#1a56db;cursor:pointer}
+    .hero-right{flex:1;max-width:540px;position:relative;display:flex;align-items:flex-end;justify-content:flex-end}
+    .hero-img-wrap{width:100%;border-radius:16px;overflow:visible;position:relative}
+    .hero-img-wrap img{width:100%;height:380px;object-fit:cover;border-radius:16px;display:block}
+    .report-card{position:absolute;bottom:-16px;right:-8px;background:#fff;border-radius:14px;padding:18px 22px;box-shadow:0 16px 48px rgba(0,0,0,.18);min-width:230px}
+    .rc-title{font-size:.68rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px}
+    .rc-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px}
+    .rc-label{font-size:.78rem;color:#64748b}
+    .rc-val{font-size:.88rem;font-weight:700;color:#0f172a}
+    .rc-val.blue{color:#1a56db;font-size:.95rem}
+    .rc-val.green{color:#059669}
+    .rc-divider{border:none;border-top:1px solid #f1f5f9;margin:10px 0}
+    .rc-btn{display:flex;align-items:center;gap:6px;font-size:.78rem;font-weight:600;color:#1a56db;cursor:pointer}
 
-    /* ── HOW IT WORKS ── */
-    .section{padding:80px 40px;max-width:1100px;margin:0 auto;text-align:center}
-    .section-label{font-size:.78rem;font-weight:700;color:#1a56db;text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px}
-    .section h2{font-size:2rem;font-weight:800;color:#0f172a;margin-bottom:12px}
-    .section-sub{font-size:1rem;color:#64748b;max-width:520px;margin:0 auto 48px}
+    /* ── SECTIONS SHARED ── */
+    .section-wrap{padding:80px 48px;max-width:1200px;margin:0 auto;text-align:center}
+    .section-tag{font-size:.72rem;font-weight:700;color:#1a56db;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px}
+    .section-h2{font-size:1.9rem;font-weight:800;color:#0f172a;margin-bottom:10px}
+    .section-h2 .blue{color:#1a56db}
+    .section-sub{font-size:.95rem;color:#64748b;max-width:500px;margin:0 auto 48px;line-height:1.7}
 
-    .steps{display:flex;gap:40px;justify-content:center;align-items:flex-start;flex-wrap:wrap}
-    .step{flex:1;min-width:200px;max-width:260px;display:flex;flex-direction:column;align-items:center;position:relative}
-    .step-icon{width:64px;height:64px;background:#eff6ff;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:16px;font-size:1.6rem}
-    .step-num{width:28px;height:28px;background:#1a56db;color:#fff;border-radius:50%;font-size:.75rem;font-weight:700;display:flex;align-items:center;justify-content:center;position:absolute;top:-4px;left:calc(50% + 14px)}
-    .step h3{font-size:1rem;font-weight:700;color:#0f172a;margin-bottom:8px}
-    .step p{font-size:.85rem;color:#64748b;line-height:1.6}
-    .step-connector{position:absolute;top:32px;left:calc(50% + 40px);width:60px;height:2px;background:#dbeafe;border-top:2px dashed #93c5fd}
+    /* ── STEPS ── */
+    .steps-row{display:flex;justify-content:center;align-items:flex-start;gap:0}
+    .step-item{flex:1;max-width:260px;display:flex;flex-direction:column;align-items:center;padding:0 16px;position:relative}
+    .step-icon-wrap{width:72px;height:72px;background:#eff6ff;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:16px;position:relative;border:2px solid #dbeafe}
+    .step-num-badge{position:absolute;top:-6px;right:-6px;width:24px;height:24px;background:#1a56db;color:#fff;border-radius:50%;font-size:.7rem;font-weight:700;display:flex;align-items:center;justify-content:center}
+    .step-connector{position:absolute;top:36px;left:calc(50% + 36px);right:calc(-50% + 36px);height:2px;border-top:2px dashed #93c5fd;z-index:0}
+    .step-h{font-size:.95rem;font-weight:700;color:#0f172a;margin-bottom:6px}
+    .step-p{font-size:.82rem;color:#64748b;line-height:1.6}
 
     /* ── WHY ── */
-    .why-section{background:#f8fafc;padding:80px 40px}
-    .why-inner{max-width:1100px;margin:0 auto;text-align:center}
-    .features{display:flex;gap:24px;justify-content:center;flex-wrap:wrap;margin-top:48px}
-    .feature{background:#fff;border-radius:14px;padding:28px 24px;flex:1;min-width:200px;max-width:240px;text-align:center;box-shadow:0 2px 12px rgba(0,0,0,.06);border:1px solid #f1f5f9;transition:transform .2s,box-shadow .2s}
-    .feature:hover{transform:translateY(-4px);box-shadow:0 8px 24px rgba(0,0,0,.1)}
-    .feature-icon{width:56px;height:56px;background:#eff6ff;border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:1.5rem}
-    .feature h3{font-size:.95rem;font-weight:700;color:#0f172a;margin-bottom:6px}
-    .feature p{font-size:.8rem;color:#64748b;line-height:1.5}
+    .why-bg{background:#f8fafc;padding:80px 0}
+    .features-row{display:flex;gap:20px;justify-content:center;flex-wrap:wrap;margin-top:0}
+    .feat-card{background:#fff;border-radius:16px;padding:32px 24px;flex:1;min-width:210px;max-width:240px;text-align:center;box-shadow:0 2px 12px rgba(0,0,0,.06);border:1px solid #f1f5f9;transition:transform .2s,box-shadow .2s}
+    .feat-card:hover{transform:translateY(-4px);box-shadow:0 10px 28px rgba(0,0,0,.1)}
+    .feat-icon{width:60px;height:60px;background:#eff6ff;border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px}
+    .feat-h{font-size:.9rem;font-weight:700;color:#0f172a;margin-bottom:6px;line-height:1.3}
+    .feat-p{font-size:.78rem;color:#64748b;line-height:1.5}
 
     /* ── FAQ ── */
-    .faq-section{padding:80px 40px;max-width:760px;margin:0 auto}
-    .faq-section h2{font-size:2rem;font-weight:800;text-align:center;margin-bottom:40px}
+    .faq-wrap{max-width:720px;margin:0 auto;padding:80px 48px;text-align:left}
+    .faq-wrap h2{text-align:center;font-size:1.9rem;font-weight:800;margin-bottom:40px}
     .faq-item{border-bottom:1px solid #e2e8f0;padding:20px 0}
-    .faq-q{font-size:.95rem;font-weight:700;color:#0f172a;margin-bottom:8px}
-    .faq-a{font-size:.88rem;color:#64748b;line-height:1.7}
+    .faq-q{font-size:.93rem;font-weight:700;color:#0f172a;margin-bottom:7px}
+    .faq-a{font-size:.85rem;color:#64748b;line-height:1.7}
 
     /* ── FINAL CTA ── */
-    .cta-section{background:linear-gradient(135deg,#0f172a,#1e3a8a);padding:80px 40px;text-align:center}
-    .cta-section h2{font-size:2.2rem;font-weight:800;color:#fff;margin-bottom:16px}
-    .cta-section p{color:#94a3b8;font-size:1rem;margin-bottom:32px}
-    .btn-cta-white{display:inline-block;background:#fff;color:#1a56db;padding:16px 40px;border-radius:10px;font-size:1.05rem;font-weight:700;text-decoration:none;transition:all .2s}
-    .btn-cta-white:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.2)}
+    .cta-band{background:linear-gradient(135deg,#0f172a,#1e3a8a);padding:80px 48px;text-align:center}
+    .cta-band h2{font-size:2rem;font-weight:800;color:#fff;margin-bottom:12px}
+    .cta-band p{color:#94a3b8;margin-bottom:32px;font-size:.95rem}
+    .btn-white{display:inline-block;background:#fff;color:#1a56db;padding:15px 36px;border-radius:8px;font-size:1rem;font-weight:700;text-decoration:none;transition:all .2s}
+    .btn-white:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,0,0,.18)}
 
     /* ── FOOTER ── */
-    footer{background:#0f172a;padding:28px 40px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+    footer{background:#0f172a;padding:28px 48px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
     footer img{height:36px}
-    footer p{font-size:.78rem;color:#475569}
-    footer a{color:#475569;text-decoration:none;font-size:.78rem}
+    footer p{font-size:.75rem;color:#475569}
+    footer a{color:#475569;text-decoration:none}
     footer a:hover{color:#94a3b8}
+    .footer-disclaimer{font-size:.7rem;color:#334155;max-width:420px;line-height:1.5}
 
     /* ── RESPONSIVE ── */
-    @media(max-width:768px){
-      nav{padding:0 20px}
-      .hero{flex-direction:column;padding:100px 20px 60px;gap:40px}
-      .hero h1{font-size:2rem}
+    @media(max-width:900px){
+      nav{padding:0 24px}
+      .hero{flex-direction:column;padding:100px 24px 60px;text-align:center}
+      .hero h1{font-size:2.2rem}
       .hero-right{width:100%}
-      .report-card{right:0;bottom:-10px}
-      .section{padding:60px 20px}
-      .why-section{padding:60px 20px}
-      .faq-section{padding:60px 20px}
-      .cta-section{padding:60px 20px}
-      footer{flex-direction:column;text-align:center;padding:24px 20px}
+      .report-card{right:0}
+      .section-wrap{padding:60px 24px}
+      .why-bg{padding:60px 0}
+      .faq-wrap{padding:60px 24px}
+      .cta-band{padding:60px 24px}
+      footer{flex-direction:column;text-align:center;padding:24px}
       .step-connector{display:none}
+      .steps-row{flex-direction:column;align-items:center;gap:32px}
     }
   </style>
 </head>
 <body>
 
-  <!-- NAV -->
-  <nav>
-    <div class="nav-logo">
-      <img src="/static/roofgrid-logo.png" alt="RoofGrid AI"/>
-    </div>
-    <a href="/app" class="nav-cta">Get Free Estimate →</a>
-  </nav>
-
-  <!-- HERO -->
-  <section class="hero">
-    <div class="hero-left">
-      <div class="hero-badge">AI-Powered Roof Measurement</div>
-      <h1>Know Your Roof Cost Before Calling a <span>Contractor</span></h1>
-      <p class="hero-sub">Get an AI-powered roof measurement and cost estimate in <strong>60 seconds — FREE.</strong> No contractor visit needed. No credit card required.</p>
-      <a href="/app" class="btn-hero">Get Started Now →</a>
-      <div class="hero-trust">
-        <span>✓</span> Free for homeowners &nbsp;·&nbsp; <span>✓</span> No sign-up required &nbsp;·&nbsp; <span>✓</span> Instant PDF report
-      </div>
-    </div>
-    <div class="hero-right">
-      <div class="hero-house">
-        <img src="/static/roof-bg.png" alt="AI roof measurement satellite view"/>
-        <div class="report-card">
-          <div class="report-card-title">Roof Report</div>
-          <div class="report-card-row">
-            <span class="report-card-label">Est. Roof Size</span>
-            <span class="report-card-val">2,400 sq ft</span>
-          </div>
-          <div class="report-card-row">
-            <span class="report-card-label">Est. Cost Range</span>
-            <span class="report-card-val blue">$8,700 – $12,400</span>
-          </div>
-          <div class="report-card-row">
-            <span class="report-card-label">Timeline</span>
-            <span class="report-card-val green">3 – 5 days</span>
-          </div>
-          <div class="report-card-btn">
-            <svg width="14" height="14" fill="none" stroke="#1a56db" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
-            View Full Report
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- HOW IT WORKS -->
-  <div style="padding:80px 40px;background:#fff">
-    <div style="max-width:1100px;margin:0 auto;text-align:center">
-      <div class="section-label">Simple Process</div>
-      <h2 style="font-size:2rem;font-weight:800;color:#0f172a;margin-bottom:12px">Get Your Free Roof Report in 3 Easy Steps</h2>
-      <p class="section-sub">No ladders, no contractors, no waiting. Just your address and 60 seconds.</p>
-      <div class="steps">
-        <div class="step">
-          <div class="step-icon">📍</div>
-          <div class="step-num">1</div>
-          <h3>Enter your address</h3>
-          <p>Tell us where your property is located.</p>
-        </div>
-        <div class="step">
-          <div class="step-icon">🛰️</div>
-          <div class="step-num">2</div>
-          <h3>AI measures your roof from satellite</h3>
-          <p>Our AI analyzes real satellite imagery in seconds.</p>
-        </div>
-        <div class="step">
-          <div class="step-icon">📧</div>
-          <div class="step-num">3</div>
-          <h3>Get your free report emailed instantly</h3>
-          <p>Receive your detailed roof report in your inbox.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- WHY ROOFGRID AI -->
-  <div class="why-section">
-    <div class="why-inner">
-      <div class="section-label">Why Choose Us</div>
-      <h2 style="font-size:2rem;font-weight:800;color:#0f172a;margin-bottom:12px">Why RoofGrid AI?</h2>
-      <p class="section-sub">Everything you need to understand your roof before talking to anyone.</p>
-      <div class="features">
-        <div class="feature">
-          <div class="feature-icon">📵</div>
-          <h3>No contractor call required</h3>
-          <p>Get your estimate without sitting through a sales pitch.</p>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">🛰️</div>
-          <h3>Real satellite imagery, not guesswork</h3>
-          <p>Claude AI analyzes actual aerial photos of your property.</p>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">📄</div>
-          <h3>Instant PDF report emailed to you</h3>
-          <p>A full branded report with measurements, costs, and timeline.</p>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">🆓</div>
-          <h3>100% free for homeowners</h3>
-          <p>No credit card, no sign-up, no strings attached.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- FAQ -->
-  <div class="faq-section">
-    <h2>Frequently Asked Questions</h2>
-    <div class="faq-item">
-      <div class="faq-q">How accurate is the AI measurement?</div>
-      <div class="faq-a">Our AI provides an estimated measurement within approximately ±10–20% of actual roof size — accurate enough for a solid ballpark before getting contractor quotes. For certified measurements, a licensed contractor will measure on-site.</div>
-    </div>
-    <div class="faq-item">
-      <div class="faq-q">What's included in the free report?</div>
-      <div class="faq-a">Your PDF report includes AI-estimated roof square footage, roof complexity and pitch assessment, material and labor cost estimate range, and an estimated contractor completion timeline.</div>
-    </div>
-    <div class="faq-item">
-      <div class="faq-q">Is it really free?</div>
-      <div class="faq-a">Yes — completely free for homeowners. No credit card, no account required. Just enter your address and get your report.</div>
-    </div>
-    <div class="faq-item">
-      <div class="faq-q">What roofing materials do you cover?</div>
-      <div class="faq-a">We provide cost estimates for Asphalt Shingle, Metal, Tile, Wood Shake, and Flat/TPO roofing — the five most common residential roofing materials.</div>
-    </div>
-    <div class="faq-item">
-      <div class="faq-q">Does this work for any address in the US?</div>
-      <div class="faq-a">Yes — RoofGrid AI works for any residential address in the United States using Mapbox satellite imagery.</div>
-    </div>
-  </div>
-
-  <!-- FINAL CTA -->
-  <div class="cta-section">
-    <h2>Ready to find out what your roof will cost?</h2>
-    <p>Free for homeowners · Takes 60 seconds · Instant PDF report</p>
-    <a href="/app" class="btn-cta-white">Get My Free Roof Estimate →</a>
-  </div>
-
-  <!-- FOOTER -->
-  <footer>
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">
     <img src="/static/roofgrid-logo.png" alt="RoofGrid AI"/>
-    <p>© 2025 RoofGrid AI · <a href="mailto:reports@roofgridai.com">reports@roofgridai.com</a></p>
-    <p style="font-size:.72rem;color:#334155;max-width:400px">AI-generated estimates are for informational purposes only. For certified measurements, consult a licensed roofing contractor.</p>
-  </footer>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-left">
+    <h1>Know Your Roof Cost<br>Before Calling a<br><span class="blue">Contractor</span></h1>
+    <p class="hero-sub">Get an AI-powered roof measurement and<br>cost estimate in <strong>60 seconds, FREE.</strong><br>No contractor visit needed.</p>
+    <p class="hero-nocredit">no credit card required</p>
+    <a href="/app" class="btn-hero">Get Started Now →</a>
+    <div class="stars">
+      <span class="star-icons">★★★★★</span>
+      <span class="stars-text"><strong>Rated 4.7/5 stars</strong> with over 1,000+ reviews</span>
+    </div>
+  </div>
+  <div class="hero-right">
+    <div class="hero-img-wrap">
+      <img src="/static/roof-bg.png" alt="AI satellite roof measurement"/>
+      <div class="report-card">
+        <div class="rc-title">Roof Report</div>
+        <div class="rc-row"><span class="rc-label">Est. Roof Size</span><span class="rc-val">2,134 sq ft</span></div>
+        <div class="rc-row"><span class="rc-label">Est. Cost Range</span><span class="rc-val blue">$8,700 – $12,400</span></div>
+        <hr class="rc-divider"/>
+        <div class="rc-btn">
+          <svg width="13" height="13" fill="none" stroke="#1a56db" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
+          View Full Report
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<div style="background:#fff;padding:80px 0">
+  <div class="section-wrap" style="padding-top:0;padding-bottom:0">
+    <h2 class="section-h2">Get Your <span class="blue">Free</span> Roof Report in 3 Easy Steps</h2>
+    <p class="section-sub">No ladders, no contractors, no waiting.</p>
+    <div class="steps-row">
+      <div class="step-item">
+        <div class="step-icon-wrap">
+          <div class="step-num-badge">1</div>
+          <svg width="28" height="28" fill="none" stroke="#1a56db" stroke-width="1.8" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        </div>
+        <div class="step-connector"></div>
+        <h3 class="step-h">Enter your address</h3>
+        <p class="step-p">Tell us where your property is located.</p>
+      </div>
+      <div class="step-item">
+        <div class="step-icon-wrap">
+          <div class="step-num-badge">2</div>
+          <svg width="28" height="28" fill="none" stroke="#1a56db" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M6.34 6.34a8 8 0 000 11.32M17.66 6.34a8 8 0 010 11.32M3.52 3.52a13 13 0 000 16.96M20.48 3.52a13 13 0 010 16.96"/></svg>
+        </div>
+        <div class="step-connector"></div>
+        <h3 class="step-h">AI measures your roof from satellite</h3>
+        <p class="step-p">Our AI analyzes real satellite imagery in seconds.</p>
+      </div>
+      <div class="step-item">
+        <div class="step-icon-wrap">
+          <div class="step-num-badge">3</div>
+          <svg width="28" height="28" fill="none" stroke="#1a56db" stroke-width="1.8" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        </div>
+        <h3 class="step-h">Get your free report emailed instantly</h3>
+        <p class="step-p">Receive your detailed roof report in your inbox.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- WHY ROOFGRID AI -->
+<div class="why-bg">
+  <div class="section-wrap" style="padding-top:0;padding-bottom:0">
+    <h2 class="section-h2">Why <span class="blue">RoofGrid AI</span>?</h2>
+    <p class="section-sub" style="margin-bottom:36px">Everything you need to understand your roof — before talking to anyone.</p>
+    <div class="features-row">
+      <div class="feat-card">
+        <div class="feat-icon">
+          <svg width="28" height="28" fill="none" stroke="#1a56db" stroke-width="1.8" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10.8a19.79 19.79 0 01-3.07-8.67A2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.92z" transform="translate(1,1) scale(.9)"/><line x1="18" y1="6" x2="23" y2="1"/><line x1="23" y1="1" x2="23" y2="5"/><line x1="23" y1="1" x2="19" y2="1"/></svg>
+        </div>
+        <h3 class="feat-h">No contractor call required</h3>
+        <p class="feat-p">Get your estimate without sitting through a sales pitch.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">
+          <svg width="28" height="28" fill="none" stroke="#1a56db" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M6.34 6.34a8 8 0 000 11.32M17.66 6.34a8 8 0 010 11.32M3.52 3.52a13 13 0 000 16.96M20.48 3.52a13 13 0 010 16.96"/></svg>
+        </div>
+        <h3 class="feat-h">Real satellite imagery, not guesswork</h3>
+        <p class="feat-p">AI analyzes actual aerial photos of your property.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">
+          <svg width="28" height="28" fill="none" stroke="#1a56db" stroke-width="1.8" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10,9 9,9 8,9"/></svg>
+        </div>
+        <h3 class="feat-h">Instant PDF report emailed to you</h3>
+        <p class="feat-p">Full report with measurements, costs, and timeline.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">
+          <svg width="28" height="28" fill="none" stroke="#1a56db" stroke-width="1.8" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/><path d="M12 8.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" fill="#1a56db" stroke="none"/></svg>
+        </div>
+        <h3 class="feat-h">100% free for homeowners</h3>
+        <p class="feat-p">No credit card, no sign-up, no strings attached.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FAQ -->
+<div class="faq-wrap">
+  <h2>Frequently Asked Questions</h2>
+  <div class="faq-item">
+    <div class="faq-q">How accurate is the AI measurement?</div>
+    <div class="faq-a">Our AI provides an estimate within approximately ±10–20% of actual roof size — accurate enough for a solid ballpark before getting contractor quotes. For certified measurements, a licensed contractor will measure on-site.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">What's included in the free report?</div>
+    <div class="faq-a">Your PDF report includes AI-estimated roof square footage, roof complexity and pitch assessment, material and labor cost estimate range, and an estimated contractor completion timeline.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">Is it really free?</div>
+    <div class="faq-a">Yes — completely free for homeowners. No credit card, no account required. Just enter your address and get your report.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">What roofing materials do you cover?</div>
+    <div class="faq-a">We provide cost estimates for Asphalt Shingle, Metal, Tile, Wood Shake, and Flat/TPO roofing — the five most common residential roofing materials.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">Does this work for any address in the US?</div>
+    <div class="faq-a">Yes — RoofGrid AI works for any residential address in the United States using real satellite imagery.</div>
+  </div>
+</div>
+
+<!-- FINAL CTA -->
+<div class="cta-band">
+  <h2>Ready to find out what your roof will cost?</h2>
+  <p>Free for homeowners · Takes 60 seconds · Instant PDF report</p>
+  <a href="/app" class="btn-white">Get My Free Roof Estimate →</a>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <img src="/static/roofgrid-logo.png" alt="RoofGrid AI"/>
+  <p>© 2025 RoofGrid AI · <a href="mailto:reports@roofgridai.com">reports@roofgridai.com</a></p>
+  <p class="footer-disclaimer">AI-generated estimates are for informational purposes only. For certified measurements, consult a licensed roofing contractor.</p>
+</footer>
 
 </body>
 </html>
