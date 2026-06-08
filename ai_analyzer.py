@@ -133,7 +133,6 @@ Measure ONLY the main structure at the given address."""
     response = client.messages.create(
         model="claude-opus-4-8",
         max_tokens=512,
-        temperature=0,  # deterministic — reduces variance on first call
         messages=[
             {
                 "role": "user",
