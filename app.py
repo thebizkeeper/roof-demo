@@ -271,7 +271,7 @@ def create_report():
         ).start()
 
     threading.Thread(target=notify_internal, args=(full_data, report_id), daemon=True).start()
-    threading.Thread(target=save_lead,       args=(full_data, report_id), daemon=True).start()
+    threading.Thread(target=save_lead,       args=(full_data, report_id, pdf_bytes), daemon=True).start()
     threading.Thread(target=save_to_sheets,  args=(full_data, report_id), daemon=True).start()
 
     return jsonify({
