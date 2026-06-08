@@ -20,94 +20,78 @@ A homeowner or contractor enters an address. The app captures a satellite image 
 - Pro tier ($49–99/mo): unlimited reports for contractors/adjusters
 - Enterprise: custom pricing for insurance companies
 
-**Not a white-label lead tool anymore.** Previously built as a lead capture demo to sell to individual roofing companies via Costin (WebGrit). Now pivoting to a standalone SaaS product owned and operated by Sam/The Biz Keeper.
-
 ## Live URLs
-- **App:** https://www.roofgridai.com (also roofscan.up.railway.app)
+- **App:** https://www.roofgridai.com
 - **GitHub:** https://github.com/thebizkeeper/roof-demo
-- **Presentation:** https://roofscan.up.railway.app/static/presentation.html
+- **Railway auto-deploys from GitHub `main` branch**
 
 ## Tech Stack
 - **Backend:** Python / Flask
-- **Frontend:** Vanilla HTML/CSS/JS (single template: `templates/index.html`)
-- **Maps:** Mapbox GL JS v3.3 + Mapbox Geocoder v5
-- **AI Measurement:** Claude Vision API (Anthropic) — analyzes Mapbox satellite image
+- **Frontend:** Vanilla HTML/CSS/JS (`templates/index.html`)
+- **Maps:** Mapbox GL JS v3.3 + Mapbox Geocoder v5 (zoom level 20)
+- **AI Measurement:** Claude Vision API (`claude-opus-4-8`, `temperature=0`)
 - **Report Delivery:** Resend.com — sends PDF from reports@roofgridai.com
-- **PDF Generation:** ReportLab or WeasyPrint (Python)
-- **Deployment:** Railway (auto-deploys from GitHub `main` branch)
+- **PDF Generation:** ReportLab
+- **Deployment:** Railway — Gunicorn with `--timeout 120 --workers 2`
 - **Domain:** roofgridai.com (Cloudflare DNS → Railway)
-- **Mapbox account:** thebizkeeper (Mapbox token in Railway env vars)
+- **Lead CRM:** Notion (daily databases: "Website Leads (Month DD, YYYY)")
 
-## Environment Variables (set in Railway dashboard)
-| Variable | Value |
+## Environment Variables (all set in Railway dashboard)
+| Variable | Status |
 |---|---|
-| `MAPBOX_TOKEN` | pk.eyJ1... (set in Railway) |
-| `ANTHROPIC_API_KEY` | Claude Vision API key (to be added) |
-| `RESEND_API_KEY` | Resend.com API key (to be added) |
-| `NOTIFY_EMAIL` | sam@thebizkeeper.com (internal alerts) |
-| `GMAIL_USER` | Gmail address (legacy, may replace with Resend) |
-| `GMAIL_APP_PASSWORD` | 16-char Gmail App Password (legacy) |
-| `GOOGLE_SHEETS_ID` | Sheet ID (not yet configured) |
-| `GOOGLE_SERVICE_ACCOUNT_JSON` | Full JSON (not yet configured) |
+| `MAPBOX_TOKEN` | Set |
+| `ANTHROPIC_API_KEY` | Set — NOTE: was exposed in chat, should be rotated |
+| `RESEND_API_KEY` | Set |
+| `NOTIFY_EMAIL` | sam@thebizkeeper.com |
+| `NOTION_TOKEN` | Set |
+| `NOTION_PARENT_PAGE_ID` | Set |
+| `APP_URL` | https://www.roofgridai.com |
 
-## Current App Flow (existing — no changes yet)
-1. Address (Mapbox autocomplete)
+## Current App Flow (LIVE and working)
+1. Address entry (Mapbox geocoder autocomplete)
 2. Pin roof on satellite map
-3. Ownership status
+3. Ownership status selection
 4. Roofing material selection
-5. Scanning animation
-6. Roof sq ft result (currently FAKE — random 2,200–3,400 sq ft placeholder)
-7. Name
-8. Email
-9. Phone
-→ Thank you page with cost estimate range + Start Over button
+5. Scan animation → Claude Vision analyzes Mapbox satellite image
+6. Roof sq ft result displayed (real AI measurement)
+7. Name input
+8. Email input
+9. Phone input
+→ Thank you page with cost estimate range + PDF report emailed + lead saved to Notion
 
-## Planned AI Report Flow (to be built)
-1. Address entered → Mapbox captures satellite image at those coordinates
-2. Image + metadata sent to Claude Vision API
-3. Claude returns: sq ft estimate, complexity, pitch, facet count
-4. Backend calculates: material cost range, labor cost range, contractor timeline
-5. PDF report generated with RoofGrid AI branding
-6. Report emailed from reports@roofgridai.com to the user
+## Key Files
+- `app.py` — Flask routes: `/api/analyze` (scan step), `/api/report` (full pipeline), `/reports/<id>.pdf`
+- `ai_analyzer.py` — Claude Vision call, address-based caching, cost/timeline calculations
+- `report_generator.py` — ReportLab PDF generation
+- `notion_leads.py` — Notion daily database creation + lead saving
+- `templates/index.html` — Full frontend wizard (9 steps)
+- `Procfile` — `gunicorn app:app --timeout 120 --workers 2`
 
-## AI Report Contents
-```
-RoofGrid AI — Roof Analysis Report
-Report ID: RG-XXXXXX
-Generated: [date]
+## AI Measurement Approach
+- Mapbox Static Images API: zoom 20 (@2x), 600×400 logical pixels
+- Ground coverage at zoom 20: ~245ft × 164ft frame
+- Claude prompt: give total ground sq ft, ask Claude what % of frame is the roof
+- `temperature=0` for consistency
+- Results cached by address string + material (30-day TTL, memory + disk)
+- Accuracy: ±10–15% from actual — acceptable for a free estimate lead tool
+- Scan result is locked per address in browser state — going Back and re-scanning reuses the same number
 
-Property: [address]
+## Two-Endpoint AI Flow
+- `/api/analyze` — called during scan animation, returns AI data only (no email/Notion)
+- `/api/report` — called on final submit, uses pre-computed sqft from client (never re-runs AI), generates PDF, emails report, saves Notion lead, fires internal notification
 
-MEASUREMENTS
-  Estimated Roof Area:     X,XXX sq ft
-  Roof Sections (Facets):  X
-  Pitch / Slope:           Low / Moderate / Steep
-  Complexity:              Simple / Moderate / Complex
+## Notion Lead CRM
+- New database created automatically on first submission each day: "Website Leads (Month DD, YYYY)"
+- Columns: Full Name, Email, Phone, Address, Report ID, Material, Sq Ft, Cost Estimate, Source, Date, Report (URL)
+- Report URL is UUID-based (32-char hex, unguessable) for privacy
+- No duplicate filtering (removed — was blocking re-tests with same email)
 
-MATERIAL SELECTED
-  [Asphalt / Metal / Tile / etc.]
-
-COST ESTIMATE
-  Materials:     $X,XXX – $X,XXX
-  Labor:         $X,XXX – $X,XXX
-  Total Range:   $X,XXX – $X,XXX
-
-ESTIMATED COMPLETION TIMELINE
-  Typical Duration:    X – X days  (or X – X weeks)
-  Based on: [sq ft] · [complexity] · [region]
-
-  * AI-generated estimate. For certified measurement, contact a licensed contractor.
-```
-
-## Timeline Logic (rule-based, no AI needed)
-| Roof Size + Complexity | Timeline |
-|---|---|
-| Under 2,000 sq ft + Simple | 1 – 2 days |
-| 2,000–2,800 sq ft + Moderate | 3 – 5 days |
-| 2,800–3,500 sq ft + Moderate | 5 – 7 days |
-| Large or Complex | 1 – 2 weeks |
-| Very large / Multi-story / Complex | 2 – 3 weeks |
-Weather note appended for Southeast region (Jun–Sep rainy season adds 1–3 days buffer).
+## PDF Report
+- Branded header: RoofGrid AI dark/green theme
+- Sections: Measurements, Material Selected, Cost Estimate, Estimated Completion Timeline
+- No satellite image in PDF (removed by user preference)
+- Disclaimer footer
+- Served from `/tmp/roofgrid_reports/` (ephemeral — Railway clears on redeploy)
 
 ## Cost Per Report (our cost)
 - Mapbox satellite image: ~$0.001
@@ -115,29 +99,33 @@ Weather note appended for Southeast region (Jun–Sep rainy season adds 1–3 da
 - Resend email delivery: free up to 100/day
 - **Total: ~$0.03–0.06 per report**
 
-## Build Phases
-### Phase 1 — AI Measurement (next up)
-- Replace fake random sq ft with Claude Vision satellite image analysis
-- Add Resend email integration
-- Generate and email PDF report to user
-- Add ANTHROPIC_API_KEY and RESEND_API_KEY to Railway
+## Known Issues / Watch List
+- **ANTHROPIC_API_KEY should be rotated** — was exposed in a chat session
+- **PDF storage is ephemeral** — `/tmp/` clears on Railway redeploys. Report links in Notion break after redeploy. Fix: migrate to Cloudflare R2 or S3 for permanent storage.
+- **AI accuracy ~±10–15%** — Claude Vision is not a certified measurement tool. For production at scale, consider EagleView API ($8–12/report) as an upgrade path.
 
-### Phase 2 — Subscription / Payments
-- Stripe integration for Pro plan signups
-- User accounts and report history
-- Rate limiting on free tier
+## Build Phases
+### Phase 1 — AI Measurement ✅ COMPLETE
+- Claude Vision satellite image analysis
+- Resend email with PDF attachment
+- Notion lead CRM with daily databases
+- Address-based measurement caching
+
+### Phase 2 — Subscription / Payments (NEXT)
+- Stripe integration for Pro plan ($49–99/mo)
+- Contractor accounts + login
+- Rate limiting on free tier (1 report per email)
+- Report history per account
 
 ### Phase 3 — Admin Dashboard
 - Contractor login at /dashboard
-- View all reports ordered
-- Manage account and billing
+- View all reports, manage billing
+
+## Revenue Model
+- **Lead selling (near-term):** Export Notion CSV → sell homeowner leads to local contractors
+- **Pro subscriptions (main SaaS):** Contractors pay $49–99/mo for unlimited reports
+- **Enterprise:** Insurance adjusters / property managers, custom pricing
 
 ## Key People
-- **Sam Shukka** — The Biz Keeper (sam@thebizkeeper.com) — sole builder and owner of RoofGrid AI
-- **Costin** — WebGrit — former partner on the lead capture demo version (no longer involved in this pivot)
-
-## Open Items
-1. Get Anthropic API key (claude.ai → API settings)
-2. Sign up for Resend.com, verify roofgridai.com domain, get API key
-3. Build Phase 1 (AI measurement + PDF report + email delivery)
-4. Decide on pricing tiers before Phase 2
+- **Sam Shukka** — The Biz Keeper (sam@thebizkeeper.com) — sole builder and owner
+- **Costin** — WebGrit — former partner on the old lead capture demo (no longer involved)
