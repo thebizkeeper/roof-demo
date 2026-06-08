@@ -200,26 +200,27 @@ def create_report():
 
     report_id = make_report_id()
 
-    # Use pre-computed AI data from client if available (avoids running AI twice)
-    if body.get("sqft") and body.get("cost_total_low"):
+    # If the client already has AI measurements from the scan step, use them — never run AI twice
+    client_sqft = body.get("sqft", 0)
+    if client_sqft and int(client_sqft) > 0:
+        from ai_analyzer import calculate_costs, calculate_timeline
+        sq_ft = int(client_sqft)
+        # Recalculate costs server-side to guarantee they match sqft + material
+        costs = calculate_costs(sq_ft, material)
+        timeline = body.get("timeline") or calculate_timeline(sq_ft, body.get("complexity", "moderate").lower(), address)
         ai = {
-            "sq_ft":           body["sqft"],
-            "sq_ft_low":       body.get("sqft_low", int(body["sqft"] * 0.9)),
-            "sq_ft_high":      body.get("sqft_high", int(body["sqft"] * 1.1)),
+            "sq_ft":           sq_ft,
+            "sq_ft_low":       body.get("sqft_low") or int(sq_ft * 0.9),
+            "sq_ft_high":      body.get("sqft_high") or int(sq_ft * 1.1),
             "facets":          body.get("facets", 4),
             "pitch":           body.get("pitch", "moderate"),
             "complexity":      body.get("complexity", "Moderate"),
             "material_visible":"unknown",
-            "confidence":      "medium",
+            "confidence":      body.get("confidence", "medium"),
             "notes":           "",
             "satellite_image_url": get_satellite_image_url(lng, lat),
-            "cost_mat_low":    body.get("cost_mat_low", 0),
-            "cost_mat_high":   body.get("cost_mat_high", 0),
-            "cost_labor_low":  body.get("cost_labor_low", 0),
-            "cost_labor_high": body.get("cost_labor_high", 0),
-            "cost_total_low":  body["cost_total_low"],
-            "cost_total_high": body["cost_total_high"],
-            "timeline":        body.get("timeline", {"range": "3 – 5 days", "weather_note": ""}),
+            "timeline":        timeline,
+            **costs,
         }
     else:
         try:
