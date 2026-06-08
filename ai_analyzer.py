@@ -3,6 +3,7 @@ import json
 import math
 import time as _time
 import hashlib
+import base64
 import requests
 import anthropic
 
@@ -130,6 +131,10 @@ Respond ONLY with valid JSON:
 
 Measure ONLY the main structure at the given address."""
 
+    # Fetch image server-side — Mapbox robots.txt blocks Claude from fetching it directly
+    img_resp = requests.get(image_url, timeout=15)
+    img_b64 = base64.standard_b64encode(img_resp.content).decode("utf-8")
+
     response = client.messages.create(
         model="claude-opus-4-8",
         max_tokens=512,
@@ -139,7 +144,11 @@ Measure ONLY the main structure at the given address."""
                 "content": [
                     {
                         "type": "image",
-                        "source": {"type": "url", "url": image_url},
+                        "source": {
+                            "type": "base64",
+                            "media_type": "image/jpeg",
+                            "data": img_b64,
+                        },
                     },
                     {"type": "text", "text": prompt},
                 ],
