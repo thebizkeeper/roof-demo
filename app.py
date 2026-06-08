@@ -32,7 +32,7 @@ resend.api_key = RESEND_API_KEY
 
 
 def make_report_id():
-    return "RG-" + datetime.now().strftime("%Y%m%d") + "-" + uuid.uuid4().hex[:6].upper()
+    return "RG-" + uuid.uuid4().hex
 
 
 def send_report_email(to_email, to_name, address, report_id, pdf_bytes):
@@ -271,7 +271,7 @@ def create_report():
         ).start()
 
     threading.Thread(target=notify_internal, args=(full_data, report_id), daemon=True).start()
-    threading.Thread(target=save_lead,       args=(full_data, report_id, pdf_bytes), daemon=True).start()
+    threading.Thread(target=save_lead,       args=(full_data, report_id), daemon=True).start()
     threading.Thread(target=save_to_sheets,  args=(full_data, report_id), daemon=True).start()
 
     return jsonify({
