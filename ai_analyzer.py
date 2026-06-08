@@ -1,6 +1,5 @@
 import os
 import json
-import math
 import time as _time
 import hashlib
 import base64
@@ -60,15 +59,9 @@ def _write_cache(address, material, result):
         pass
 
 
-ZOOM = 20       # zoom 20 ≈ 245ft×164ft frame — building fills ~5-15% vs ~1-2% at zoom 19
-IMG_W_PX = 600  # logical pixels (Mapbox base)
+ZOOM = 19
+IMG_W_PX = 600
 IMG_H_PX = 400
-
-
-def _logical_fpp(lat):
-    """Ground distance per logical pixel at the configured zoom."""
-    meters = 156543.03392 * math.cos(math.radians(lat)) / (2 ** ZOOM)
-    return meters * 3.28084
 
 
 def get_satellite_image_url(lng, lat, zoom=ZOOM):
@@ -91,47 +84,24 @@ def analyze_roof(lat, lng, address, material):
     client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
     image_url = get_satellite_image_url(lng, lat)
 
-    fpp = _logical_fpp(lat)
-    img_w_ft = round(IMG_W_PX * fpp)
-    img_h_ft = round(IMG_H_PX * fpp)
-
     prompt = f"""You are a professional roof measurement analyst reviewing a satellite image.
 
 Property address: {address}
 
-SCALE:
-- Image size: {IMG_W_PX} × {IMG_H_PX} logical pixels
-- Ground coverage: {img_w_ft} ft wide × {img_h_ft} ft tall
-- Scale: 1 pixel = {fpp:.2f} ft
-
-INSTRUCTIONS:
-1. Find the main building at the given address — ignore all neighboring structures
-2. Estimate the roof outline in pixels (width and depth of the main structure only)
-3. Convert pixels to feet using the scale above: width_ft = pixel_width × {fpp:.2f}, etc.
-4. Flat footprint sq ft = width_ft × depth_ft
-5. Apply pitch multiplier:
-   - Flat (0°): × 1.00
-   - Low (1–4°): × 1.03
-   - Moderate (4–9°, typical home): × 1.10
-   - Steep (9°+): × 1.20
-6. sq_ft_estimate = footprint × multiplier
-
-Respond ONLY with valid JSON:
+Analyze the roof visible in this satellite image and respond ONLY with valid JSON in this exact format:
 {{
-  "roof_width_px": <integer — roof width in pixels>,
-  "roof_depth_px": <integer — roof depth in pixels>,
-  "sq_ft_estimate": <integer — surface area after pitch multiplier>,
-  "sq_ft_low": <integer — 8% below estimate>,
-  "sq_ft_high": <integer — 8% above estimate>,
-  "facets": <integer — number of distinct roof planes>,
-  "pitch": <"flat" | "low" | "moderate" | "steep">,
+  "sq_ft_estimate": <integer — your best estimate of roof area in square feet>,
+  "sq_ft_low": <integer — conservative low end, roughly 10% below estimate>,
+  "sq_ft_high": <integer — high end, roughly 10% above estimate>,
+  "facets": <integer — number of distinct roof sections/planes>,
+  "pitch": <"low" | "moderate" | "steep">,
   "complexity": <"simple" | "moderate" | "complex">,
-  "material_visible": <string — visible roofing material or "unknown">,
+  "material_visible": <string — what material appears visible, or "unknown">,
   "confidence": <"low" | "medium" | "high">,
-  "notes": <string — include your pixel estimates and foot conversion>
+  "notes": <string — 1-2 sentences about the roof structure>
 }}
 
-Measure ONLY the main structure at the given address."""
+Focus only on the main structure's roof at the given address. Do not include detached garages or outbuildings unless clearly attached."""
 
     # Fetch image server-side — Mapbox robots.txt blocks Claude from fetching it directly
     img_resp = requests.get(image_url, timeout=15)
