@@ -22,27 +22,38 @@ SOUTHEAST_STATES = {"FL", "GA", "AL", "MS", "LA", "SC", "NC"}
 CACHE_DIR = "/tmp/roofgrid_cache"
 CACHE_TTL = 30 * 24 * 3600  # 30 days
 
-
-def _cache_path(lat, lng, material):
-    key = f"{round(lat, 4)},{round(lng, 4)},{material}"
-    return os.path.join(CACHE_DIR, hashlib.md5(key.encode()).hexdigest() + ".json")
+# In-process memory cache — survives across requests within the same Gunicorn worker
+_MEM_CACHE: dict = {}
 
 
-def _read_cache(lat, lng, material):
+def _cache_key(address, material):
+    # Key on address string, not lat/lng — map marker position varies slightly between runs
+    return hashlib.md5(f"{address.strip().lower()}|{material}".encode()).hexdigest()
+
+
+def _read_cache(address, material):
+    key = _cache_key(address, material)
+    # 1. Memory cache (instant, per-worker)
+    if key in _MEM_CACHE:
+        return dict(_MEM_CACHE[key])
+    # 2. Disk cache (survives worker restarts, shared across workers)
     try:
-        with open(_cache_path(lat, lng, material)) as f:
+        with open(os.path.join(CACHE_DIR, key + ".json")) as f:
             data = json.load(f)
         if _time.time() - data.pop("_ts", 0) < CACHE_TTL:
-            return data
+            _MEM_CACHE[key] = data
+            return dict(data)
     except Exception:
         pass
     return None
 
 
-def _write_cache(lat, lng, material, result):
+def _write_cache(address, material, result):
+    key = _cache_key(address, material)
+    _MEM_CACHE[key] = result
     os.makedirs(CACHE_DIR, exist_ok=True)
     try:
-        with open(_cache_path(lat, lng, material), "w") as f:
+        with open(os.path.join(CACHE_DIR, key + ".json"), "w") as f:
             json.dump({**result, "_ts": _time.time()}, f)
     except Exception:
         pass
@@ -70,7 +81,7 @@ def get_satellite_image_url(lng, lat, zoom=ZOOM):
 def analyze_roof(lat, lng, address, material):
     """Send satellite image to Claude Vision and return structured roof data."""
     # Return cached result so the same address always gives the same number
-    cached = _read_cache(lat, lng, material)
+    cached = _read_cache(address, material)
     if cached:
         cached["satellite_image_url"] = get_satellite_image_url(lng, lat)
         print(f"Cache hit: {address}")
@@ -164,7 +175,7 @@ Measure ONLY the main structure at the given address."""
         **costs,
         "timeline": timeline,
     }
-    _write_cache(lat, lng, material, result)
+    _write_cache(address, material, result)
     return result
 
 
