@@ -60,11 +60,12 @@ A homeowner or contractor enters an address. The app captures a satellite image 
 → Thank you page with report summary checklist + PDF report emailed + lead saved to Notion
 
 ## Key Files
-- `app.py` — Flask routes: `/api/analyze` (scan step), `/api/report` (full pipeline), `/reports/<id>.pdf`
+- `app.py` — Flask routes: `/` (landing page), `/app` (tool wizard), `/api/analyze`, `/api/report`, `/reports/<id>.pdf`
 - `ai_analyzer.py` — Claude Vision call, address-based caching, cost/timeline calculations
 - `report_generator.py` — ReportLab PDF generation
 - `notion_leads.py` — Notion daily database creation + lead saving
-- `templates/index.html` — Full frontend wizard (10 steps including thank you)
+- `templates/landing.html` — Marketing homepage at `/`
+- `templates/index.html` — Full frontend wizard at `/app` (10 steps including thank you)
 - `Procfile` — `gunicorn app:app --timeout 120 --workers 2`
 
 ## AI Measurement Approach
@@ -139,6 +140,10 @@ Tile is genuinely $10–20/sq ft in the real market — our rates are slightly c
 - Scan lock (client-side `scannedAddress` prevents re-scan on Back)
 - Measurement display with "approx." and estimated range
 - Thank you page with report summary checklist
+- Marketing homepage (`/`) with hero, how-it-works, why section, FAQ, CTA footer
+- Tool moved to `/app` — logo anchored top-left on desktop, centered top on mobile
+- Desktop hero: logo top-left, headline centered vertically, house image blends into gradient
+- Mobile hero: logo centered at top, 1.8rem headline, button centered, stars top-aligned
 
 ### Phase 2 — Subscription / Payments (NEXT)
 - Stripe integration for Pro plan ($49–99/mo)
