@@ -17,11 +17,10 @@
     .page-wrap{overflow-x:clip}
 
     /* ── NAV ── */
-    nav{position:fixed;top:0;left:0;right:0;z-index:100;background:linear-gradient(to right,#fff 42%,transparent 65%);height:72px;display:flex;align-items:center;padding:0 48px}
-    .nav-logo img{height:58px;width:auto}
+    .hero-logo img{height:58px;width:auto;margin-bottom:28px;display:block}
 
     /* ── HERO ── */
-    .hero{position:relative;overflow:hidden;min-height:100vh;background:linear-gradient(to right,#ffffff 0%,#f0f7ff 28%,#dbeafe 50%,#1e3a8a 100%);display:flex;align-items:center;padding:100px 48px 60px}
+    .hero{position:relative;overflow:hidden;min-height:100vh;background:linear-gradient(to right,#ffffff 0%,#f0f7ff 28%,#dbeafe 50%,#1e3a8a 100%);display:flex;align-items:center;padding:40px 48px 60px}
     .hero-left{flex:0 0 auto;width:48%;position:relative;z-index:2}
     .hero h1{font-size:3.2rem;font-weight:900;color:#0f172a;line-height:1.12;margin-bottom:20px}
     .hero h1 .blue{color:#1a56db}
@@ -97,8 +96,7 @@
 
     /* ── RESPONSIVE ── */
     @media(max-width:900px){
-      nav{padding:0 24px}
-      .hero{padding:100px 24px 340px;background:linear-gradient(to bottom,#ffffff 0%,#dbeafe 60%,#1e3a8a 100%)}
+      .hero{padding:60px 24px 340px;background:linear-gradient(to bottom,#ffffff 0%,#dbeafe 60%,#1e3a8a 100%)}
       .hero-left{width:100%;text-align:center}
       .hero h1{font-size:2.2rem}
       .hero-right{width:100%;top:auto;bottom:0;height:320px}
@@ -116,17 +114,11 @@
 </head>
 <body>
 
-<!-- NAV — fixed, outside page-wrap so overflow never affects it -->
-<nav>
-  <div class="nav-logo">
-    <img src="/static/roofgrid-logo.png" alt="RoofGrid AI"/>
-  </div>
-</nav>
-
 <div class="page-wrap">
 <!-- HERO -->
 <section class="hero">
   <div class="hero-left">
+    <div class="hero-logo"><img src="/static/roofgrid-logo.png" alt="RoofGrid AI"/></div>
     <h1>Know Your Roof Cost<br>Before Calling a<br><span class="blue">Contractor</span></h1>
     <p class="hero-sub">Get an AI-powered roof measurement and<br>cost estimate in <strong>60 seconds, FREE.</strong><br>No contractor visit needed.</p>
     <p class="hero-nocredit">no credit card required</p>
