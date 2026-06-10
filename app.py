@@ -164,6 +164,40 @@ def terms():
     return render_template("terms.html")
 
 
+@app.route("/sitemap.xml")
+def sitemap():
+    from flask import Response
+    xml = '''<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://www.roofgridai.com/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://www.roofgridai.com/app</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.roofgridai.com/terms</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+</urlset>'''
+    return Response(xml, mimetype="application/xml")
+
+
+@app.route("/robots.txt")
+def robots():
+    from flask import Response
+    txt = '''User-agent: *
+Allow: /
+Disallow: /api/
+Sitemap: https://www.roofgridai.com/sitemap.xml'''
+    return Response(txt, mimetype="text/plain")
+
+
 @app.route("/reports/<report_id>.pdf")
 def serve_report(report_id):
     from flask import send_file
