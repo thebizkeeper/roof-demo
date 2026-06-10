@@ -143,9 +143,10 @@ Tile is genuinely $10–20/sq ft in the real market — our rates are slightly c
 - Marketing homepage (`/`) with hero, how-it-works, why section, FAQ, CTA footer
 - Tool moved to `/app` — logo anchored top-left on desktop, centered top on mobile
 - Desktop hero: logo top-left, headline centered vertically, house image blends into gradient
-- Mobile hero: logo centered at top, 1.8rem headline, button centered, stars top-aligned
+- Mobile hero: logo centered at top (`margin:0 auto`, `display:block`), 48px gap before headline, 1.8rem headline, button centered (`align-self:center`), stars top-aligned (`align-items:flex-start`)
 
-### Phase 2 — Subscription / Payments (NEXT)
+### Phase 2 — Subscription / Payments (ON HOLD — not started)
+**Do not build Phase 2 until lead revenue is flowing.** Near-term focus is driving traffic and selling leads.
 - Stripe integration for Pro plan ($49–99/mo)
 - Contractor accounts + login
 - Rate limiting on free tier (1 report per email)
