@@ -144,7 +144,10 @@ Tile is genuinely $10–20/sq ft in the real market — our rates are slightly c
 - Tool moved to `/app` — logo anchored top-left on desktop, centered top on mobile
 - Desktop hero: logo top-left, headline centered vertically, house image blends into gradient
 - Mobile hero: logo centered at top (`margin:0 auto`, `display:block`), 48px gap before headline, 1.8rem headline, button centered (`align-self:center`), stars top-aligned (`align-items:flex-start`)
-- Footer: © 2026, white/light text, no logo, spam folder notice, Terms & Privacy link
+- Footer: © 2026, white/light text, no logo, spam folder notice ("Reports sent from reports@roofgridai.com — if not received, please check your spam folder"), Terms & Privacy link
+- Hero copy: "No credit card required" capitalized, stars row changed to "★★★★★ Free for homeowners · No signup" (no fake rating)
+- Report card: moved to center-left of hero image on desktop, labeled "Roof Report Example" on both desktop and mobile
+- `/app` page header: white-to-transparent gradient (solid white 65%, fades below), 110px tall, logo 58px matching homepage, tagline vertically centered, phone number removed, desktop tagline: "AI-Powered Roof Measurement · Free & Instant", mobile logo centered
 
 ## Legal & Compliance
 - Terms of Service + Privacy Policy at `/terms` — covers AI accuracy disclaimer, lead sharing disclosure, no warranty, limitation of liability
