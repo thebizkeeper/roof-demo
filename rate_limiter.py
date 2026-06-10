@@ -6,6 +6,10 @@ LIMITS_DIR = "/tmp/roofgrid_limits"
 MAX_PER_EMAIL = 3
 MAX_PER_IP_DAY = 3
 
+# These are never rate-limited — add any test emails or IPs here
+BYPASS_EMAILS = {"sam@thebizkeeper.com"}
+BYPASS_IPS    = {"127.0.0.1", "::1", "localhost"}
+
 _combos = None        # set of "email|address" — permanently blocked combos
 _email_counts = None  # dict: email -> total report count
 _ip_daily = None      # dict: ip -> {"count": N, "date": "YYYY-MM-DD"}
@@ -53,6 +57,10 @@ def check_and_record(email, address, ip):
     today = date.today().isoformat()
     email_key = email.lower().strip()
     combo_key = f"{email_key}|{address.strip().lower()}"
+
+    # Bypass for owner/test accounts — never blocked
+    if email_key in BYPASS_EMAILS or ip in BYPASS_IPS:
+        return True, ""
 
     # 1. Same email + same address — always blocked
     if combo_key in _combos:
