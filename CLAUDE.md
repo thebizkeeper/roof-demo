@@ -144,6 +144,15 @@ Tile is genuinely $10–20/sq ft in the real market — our rates are slightly c
 - Tool moved to `/app` — logo anchored top-left on desktop, centered top on mobile
 - Desktop hero: logo top-left, headline centered vertically, house image blends into gradient
 - Mobile hero: logo centered at top (`margin:0 auto`, `display:block`), 48px gap before headline, 1.8rem headline, button centered (`align-self:center`), stars top-aligned (`align-items:flex-start`)
+- Footer: © 2026, white/light text, no logo, spam folder notice, Terms & Privacy link
+
+## Legal & Compliance
+- Terms of Service + Privacy Policy at `/terms` — covers AI accuracy disclaimer, lead sharing disclosure, no warranty, limitation of liability
+- Consent checkbox on Step 9 (required to submit): "I agree to the Terms of Service and Privacy Policy and authorize follow-up regarding my estimate."
+- Lead sharing disclosed in Terms sections 8 & 9 — satisfies TCPA written consent requirement
+- Rate limiting: 3 reports/email (lifetime), 3 reports/IP/day, same email+address blocked permanently
+- Bypass whitelist: `sam@thebizkeeper.com` and localhost never rate-limited
+- `rate_limiter.py` — stores limits in `/tmp/roofgrid_limits/` (clears on Railway redeploy — acceptable for rate limiting)
 
 ### Phase 2 — Subscription / Payments (ON HOLD — not started)
 **Do not build Phase 2 until lead revenue is flowing.** Near-term focus is driving traffic and selling leads.
