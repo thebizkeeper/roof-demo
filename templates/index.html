@@ -108,6 +108,12 @@
     .btn-back{background:none;border:none;color:#64748b;font-size:.82rem;cursor:pointer;margin-top:10px;width:100%;padding:6px;display:flex;align-items:center;justify-content:center;gap:4px}
     .btn-back:hover{color:#1a56db}
     .btn-cta{background:linear-gradient(135deg,#10b981,#059669);padding:15px}
+    .terms-check{display:flex;align-items:flex-start;gap:10px;margin-top:16px;cursor:pointer}
+    .terms-check input[type=checkbox]{width:18px;height:18px;flex-shrink:0;margin-top:2px;accent-color:#1a56db;cursor:pointer}
+    .terms-check-label{font-size:.78rem;color:#64748b;line-height:1.5}
+    .terms-check-label a{color:#1a56db;text-decoration:none}
+    .terms-check-label a:hover{text-decoration:underline}
+    .limit-msg{font-size:.82rem;color:#dc2626;text-align:center;margin-top:12px;display:none}
 
     /* ── Thank you ── */
     .ty-icon{width:64px;height:64px;background:linear-gradient(135deg,#10b981,#059669);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2rem;margin:0 auto 16px}
@@ -286,8 +292,13 @@
     <div class="step" id="s9">
       <div class="step-title">Your Phone Number</div>
       <div class="step-sub">A roofing specialist will reach out with your full estimate</div>
-      <input id="inp-phone" class="txt-input" type="tel" placeholder="(555) 000-0000" oninput="formatPhone(this);checkText('inp-phone','btn-s9')"/>
+      <input id="inp-phone" class="txt-input" type="tel" placeholder="(555) 000-0000" oninput="formatPhone(this);checkS9()"/>
+      <label class="terms-check">
+        <input type="checkbox" id="chk-terms" onchange="checkS9()"/>
+        <span class="terms-check-label">I agree to the <a href="/terms" target="_blank">Terms of Service and Privacy Policy</a>, including being contacted by roofing and home service partners.</span>
+      </label>
       <button class="btn-next" id="btn-s9" onclick="submitLead()" disabled>Get My Free Estimate →</button>
+      <div class="limit-msg" id="limit-msg"></div>
       <button class="btn-back" onclick="goStep(8)">← Back</button>
     </div>
 
@@ -502,6 +513,13 @@ function checkText(inputId, btnId) {
   if (inputId === 'inp-phone') lead.phone = val;
 }
 
+function checkS9() {
+  const phone = document.getElementById('inp-phone').value.trim();
+  const agreed = document.getElementById('chk-terms').checked;
+  lead.phone = phone;
+  document.getElementById('btn-s9').disabled = !(phone.length >= 10 && agreed);
+}
+
 function checkEmail() {
   const val = document.getElementById('inp-email').value.trim();
   const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
@@ -523,15 +541,25 @@ async function submitLead() {
   lead.email = document.getElementById('inp-email').value.trim();
   lead.phone = document.getElementById('inp-phone').value.trim();
   const btn = document.getElementById('btn-s9');
+  const limitMsg = document.getElementById('limit-msg');
   btn.disabled = true;
   btn.textContent = 'Generating your report…';
+  limitMsg.style.display = 'none';
 
   try {
-    await fetch('/api/report', {
+    const res = await fetch('/api/report', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(lead),
     });
+    if (res.status === 429) {
+      const data = await res.json();
+      limitMsg.textContent = data.error || 'Report limit reached.';
+      limitMsg.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Get My Free Estimate →';
+      return;
+    }
   } catch(e) {}
 
   showThankYou();

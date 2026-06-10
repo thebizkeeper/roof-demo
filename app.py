@@ -7,6 +7,7 @@ import resend
 from ai_analyzer import analyze_roof, get_satellite_image_url
 from report_generator import generate_pdf_report
 from notion_leads import save_lead
+from rate_limiter import check_and_record
 
 try:
     import gspread
@@ -158,6 +159,11 @@ def index():
     return render_template("index.html", mapbox_token=MAPBOX_TOKEN)
 
 
+@app.route("/terms")
+def terms():
+    return render_template("terms.html")
+
+
 @app.route("/reports/<report_id>.pdf")
 def serve_report(report_id):
     from flask import send_file
@@ -202,6 +208,12 @@ def create_report():
 
     if not lat or not lng:
         return jsonify({"ok": False, "error": "Missing coordinates"}), 400
+
+    # Rate limiting — check before doing any work
+    client_ip = request.headers.get("X-Forwarded-For", request.remote_addr or "").split(",")[0].strip()
+    allowed, reason = check_and_record(email, address, client_ip)
+    if not allowed:
+        return jsonify({"ok": False, "error": reason, "limit_reached": True}), 429
 
     report_id = make_report_id()
 
